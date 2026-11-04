@@ -205,6 +205,23 @@ class Product:
 
 
 @dataclass
+class Asset:
+    """Ingested marketing asset record."""
+    asset_id: str
+    name: str
+    product_id: str
+    market: str
+    channel: Channel
+    status: AssetStatus
+    created_by: str
+    source_hash: str
+    text_content: str
+    planned_publish_date: str
+    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+
+
+
+@dataclass
 class RuleSpec:
     """Declarative JSON rule specification."""
     rule_id: str
