@@ -1,0 +1,44 @@
+{
+  "rule_id": "V-04",
+  "predicate_type": "term_list",
+  "scope": {
+    "product": "*",
+    "market": "*",
+    "channel": "*"
+  },
+  "parameters": {
+    "disallowed_terms": ["forever", "guaranteed", "100%", "instant", "no.1", "cure acne"],
+    "case_sensitive": false,
+    "suggested_substitutions": {
+      "forever": "long-term",
+      "guaranteed": "clinically tested",
+      "100%": "up to 95%",
+      "instant": "rapid",
+      "no.1": "leading"
+    }
+  },
+  "positive_test_cases": [
+    {
+      "input": "Say goodbye to acne forever!",
+      "expected_match": true,
+      "matched_terms": ["forever"]
+    },
+    {
+      "input": "Guaranteed 100% results instant relief.",
+      "expected_match": true,
+      "matched_terms": ["guaranteed", "100%", "instant"]
+    }
+  ],
+  "negative_test_cases": [
+    {
+      "input": "Clinically proven to reduce breakouts in 4 weeks.",
+      "expected_match": false
+    },
+    {
+      "input": "Gentle daily wash for clearer-looking skin.",
+      "expected_match": false
+    }
+  ],
+  "owner_approved": true,
+  "version": 1
+}

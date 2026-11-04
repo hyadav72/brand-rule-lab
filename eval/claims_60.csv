@@ -1,0 +1,61 @@
+claim_id,product_id,market,claim_text,expected_fact_id,expected_link_state,category
+C01,prod_monsoon,US,"Say goodbye to acne forever!",F-112,UNLINKED,absolute_tone
+C02,prod_monsoon,US,"Our 2.5% BPO wash clears breakouts in 3 days.",F-112,LINKED,timeframe_mismatch
+C03,prod_monsoon,US,"Clinically proven to reduce acne breakouts in 4 weeks.",F-112,LINKED,exact_compliant
+C04,prod_monsoon,US,"Reduces breakouts in 4 weeks with twice-daily use.",F-112,LINKED,permitted_wording
+C05,prod_monsoon,US,"Contains 2.5% Benzoyl Peroxide for gentle blemish reduction.",F-113,LINKED,exact_compliant
+C06,prod_monsoon,US,"Contains 2.5% BPO active concentration.",F-113,LINKED,terminology_violation
+C07,prod_monsoon,US,"Clears pimples in 48 hours guaranteed.",F-112,LINKED,tone_and_timeframe
+C08,prod_monsoon,US,"Recommended by 100% of dermatologists worldwide.",NONE,UNLINKED,unsupported_superlative
+C09,prod_monsoon,US,"100% organic herbal acne wash.",NONE,UNLINKED,misleading_organic
+C10,prod_monsoon,US,"Chemical-free formula dissolves clogged pores.",NONE,UNLINKED,misleading_chemical_free
+C11,prod_monsoon,US,"Cures severe cystic acne permanently.",F-112,LINKED,medical_claim_violation
+C12,prod_monsoon,US,"Contains active 2.5% Benzoyl Peroxide.",F-113,LINKED,exact_compliant
+C13,prod_monsoon,US,"Diwali bundle discount 20% off ends 31 October 2026.",F-OFFER-01,LINKED,expired_offer
+C14,prod_monsoon,US,"Fall Flash Sale 15% off orders over $50 until 12 November 2026.",F-OFFER-02,LINKED,valid_offer
+C15,prod_monsoon,US,"Fall Flash Sale 15% off orders over $50 until 15 November 2026.",F-OFFER-02,LINKED,extended_date_violation
+C16,prod_monsoon,US,"Free shipping on all US orders placed before 31 December 2026.",F-OFFER-03,LINKED,valid_offer
+C17,prod_monsoon,US,"Instant blemish erasure on first contact.",F-112,LINKED,absolute_speed_violation
+C18,prod_monsoon,US,"Number one acne brand in North America.",NONE,UNLINKED,unsubstantiated_rank
+C19,prod_monsoon,US,"Eliminates redness in 12 hours flat.",NONE,UNLINKED,unsubstantiated_timeframe
+C20,prod_monsoon,US,"Gentle daily cleanser with 2.5% Benzoyl Peroxide.",F-113,LINKED,exact_compliant
+C21,prod_glow,US,"Contains 10% stabilized L-ascorbic acid for visible radiance.",F-201,LINKED,exact_compliant
+C22,prod_glow,US,"10% stabilized Vitamin C visibly enhances radiance in 14 days.",F-201,LINKED,permitted_wording
+C23,prod_glow,US,"Erases dark spots in 24 hours.",F-201,LINKED,timeframe_mismatch
+C24,prod_glow,US,"Dermatologist-tested for sensitive skin.",F-202,LINKED,exact_compliant
+C25,prod_glow,US,"Certified non-comedogenic formulation.",F-202,LINKED,exact_compliant
+C26,prod_glow,US,"Guaranteed to reverse 10 years of sun damage.",NONE,UNLINKED,unsupported_antiaging
+C27,prod_glow,US,"100% natural cold-pressed brightening elixir.",NONE,UNLINKED,misleading_natural
+C28,prod_glow,US,"Contains 20% pure Vitamin C crystals.",F-201,LINKED,concentration_mismatch
+C29,prod_glow,US,"Noticeable radiance after 14 days of nightly application.",F-201,LINKED,exact_compliant
+C30,prod_glow,US,"Miracle vitamin drops that prevent all wrinkles.",NONE,UNLINKED,superlative_violation
+C31,prod_glow,US,"Safe for hypersensitive and eczema-prone skin types.",F-202,LINKED,extrapolated_sensitivity
+C32,prod_glow,US,"Contains stabilized L-ascorbic acid at clinical strength.",F-201,LINKED,exact_compliant
+C33,prod_glow,US,"Non-comedogenic and won't clog delicate pores.",F-202,LINKED,permitted_wording
+C34,prod_glow,US,"All-natural glow drops with zero synthetics.",NONE,UNLINKED,misleading_natural
+C35,prod_glow,US,"14-day clinical radiance booster with 10% Vitamin C.",F-201,LINKED,exact_compliant
+C36,prod_glow,US,"Instant glass skin in 5 minutes.",NONE,UNLINKED,unsupported_speed
+C37,prod_glow,US,"Tested under strict dermatological supervision.",F-202,LINKED,exact_compliant
+C38,prod_glow,US,"Toxin-free brightening serum.",NONE,UNLINKED,misleading_toxin_free
+C39,prod_glow,US,"Proven 10% L-ascorbic acid formula.",F-201,LINKED,exact_compliant
+C40,prod_glow,US,"Permanent cure for melasma and hyperpigmentation.",NONE,UNLINKED,prohibited_disease_cure
+C41,prod_barrier,UK,"Increases skin barrier hydration by 48% after 24 hours.",F-301,LINKED,exact_compliant
+C42,prod_barrier,UK,"Hydrates skin barrier by 48% in 24 hours.",F-301,LINKED,permitted_wording
+C43,prod_barrier,UK,"Boosts hydration by 100% instantly.",F-301,LINKED,absolute_percentage_violation
+C44,prod_barrier,UK,"Formulated with 3 essential skin-identical ceramides (1, 3, 6-II).",F-302,LINKED,exact_compliant
+C45,prod_barrier,UK,"Contains ceramides and multi-weight hyaluronic acid.",F-302,LINKED,exact_compliant
+C46,prod_barrier,UK,"Rebuilds broken skin barrier overnight.",F-301,LINKED,unsupported_overnight
+C47,prod_barrier,UK,"Clinical 48% moisture increase after 24-hour test period.",F-301,LINKED,exact_compliant
+C48,prod_barrier,UK,"Contains 5 essential ceramides.",F-302,LINKED,ingredient_count_mismatch
+C49,prod_barrier,UK,"Doctor recommended across the United Kingdom.",NONE,UNLINKED,unsubstantiated_endorsement
+C50,prod_barrier,UK,"100% organic ceramide moisturizer.",NONE,UNLINKED,misleading_organic
+C51,prod_barrier,UK,"Zero chemicals, 100% pure skin food.",NONE,UNLINKED,misleading_chemical_free
+C52,prod_barrier,UK,"Restores lipid barrier with 3 key ceramides.",F-302,LINKED,exact_compliant
+C53,prod_barrier,UK,"Clinically measured 48% hydration lift within 1 day.",F-301,LINKED,exact_compliant
+C54,prod_barrier,UK,"Cures atopic dermatitis and eczema.",NONE,UNLINKED,prohibited_disease_cure
+C55,prod_barrier,UK,"Deep hydration that lasts for 7 days straight.",F-301,LINKED,exaggerated_duration
+C56,prod_barrier,UK,"Formulated with 3 essential ceramides and hyaluronic acid.",F-302,LINKED,permitted_wording
+C57,prod_barrier,UK,"Guaranteed relief from winter dryness.",F-301,LINKED,tone_guarantee_violation
+C58,prod_barrier,UK,"Multi-weight hyaluronic acid locks in deep cellular moisture.",F-302,LINKED,exact_compliant
+C59,prod_barrier,UK,"The UK's only certified barrier repair salve.",NONE,UNLINKED,unsubstantiated_exclusivity
+C60,prod_barrier,UK,"Tested by leading British dermatologists.",NONE,UNLINKED,unverified_claim

@@ -1,0 +1,40 @@
+{
+  "rule_id": "D-02",
+  "predicate_type": "date_window",
+  "scope": {
+    "product": "*",
+    "market": "*",
+    "channel": "*"
+  },
+  "parameters": {
+    "target_fact_id": "F-OFFER-02",
+    "approved_end_date": "2026-11-12",
+    "explanation": "Stated promotional offer end date extends beyond the approved marketing campaign window (approved expiry: 2026-11-12)."
+  },
+  "positive_test_cases": [
+    {
+      "input": "Sale ends 15 Nov",
+      "publish_date": "2026-11-05",
+      "expected_match": true
+    },
+    {
+      "input": "Special promotion running until November 20th",
+      "publish_date": "2026-11-05",
+      "expected_match": true
+    }
+  ],
+  "negative_test_cases": [
+    {
+      "input": "Flash sale ends 12 Nov",
+      "publish_date": "2026-11-05",
+      "expected_match": false
+    },
+    {
+      "input": "Limited offer valid through Nov 10",
+      "publish_date": "2026-11-05",
+      "expected_match": false
+    }
+  ],
+  "owner_approved": true,
+  "version": 1
+}

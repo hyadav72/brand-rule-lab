@@ -1,0 +1,42 @@
+{
+  "rule_id": "C-01",
+  "predicate_type": "numeric_range",
+  "scope": {
+    "product": "prod_monsoon",
+    "market": "US",
+    "channel": "*"
+  },
+  "parameters": {
+    "target_fact_id": "F-112",
+    "fact_metric": "breakout_reduction_time",
+    "approved_timeframe_days_min": 28,
+    "pattern": "(\\d+)\\s*(days|day|hours|hrs|weeks|week)",
+    "explanation": "Claimed turnaround timeframe contradicts approved clinical trial data (F-112 specifies 4 weeks / 28 days minimum)."
+  },
+  "positive_test_cases": [
+    {
+      "input": "clears breakouts in 3 days",
+      "expected_match": true,
+      "detected_days": 3
+    },
+    {
+      "input": "visible results in 48 hours",
+      "expected_match": true,
+      "detected_days": 2
+    }
+  ],
+  "negative_test_cases": [
+    {
+      "input": "reduces breakouts in 4 weeks",
+      "expected_match": false,
+      "detected_days": 28
+    },
+    {
+      "input": "significant improvement after 30 days of consistent use",
+      "expected_match": false,
+      "detected_days": 30
+    }
+  ],
+  "owner_approved": true,
+  "version": 1
+}

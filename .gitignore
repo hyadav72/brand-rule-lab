@@ -1,0 +1,35 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment variables & secrets
+.env
+.env.local
+
+# SQLite database files (keep repo clean, seeds populate DB)
+*.db
+*.sqlite3
+
+# Streamlit runtime
+.streamlit/secrets.toml
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Operating System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE files
+.vscode/
+.idea/

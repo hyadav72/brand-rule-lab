@@ -1,0 +1,38 @@
+{
+  "rule_id": "T-05",
+  "predicate_type": "term_list",
+  "scope": {
+    "product": "*",
+    "market": "*",
+    "channel": "*"
+  },
+  "parameters": {
+    "disallowed_terms": ["100% natural", "100% organic", "all natural", "chemical free", "toxin free", "completely safe"],
+    "case_sensitive": false,
+    "explanation": "Absolute 'chemical free' or '100% natural' claims violate ASCI and FTC cosmetic truth-in-advertising guidelines."
+  },
+  "positive_test_cases": [
+    {
+      "input": "Our all natural and chemical free formula protects delicate skin.",
+      "expected_match": true,
+      "matched_terms": ["all natural", "chemical free"]
+    },
+    {
+      "input": "100% organic ingredients guarantee zero irritation.",
+      "expected_match": true,
+      "matched_terms": ["100% organic"]
+    }
+  ],
+  "negative_test_cases": [
+    {
+      "input": "Formulated with naturally derived plant extracts and gentle cleansers.",
+      "expected_match": false
+    },
+    {
+      "input": "Dermatologist-tested for safety and skin tolerance.",
+      "expected_match": false
+    }
+  ],
+  "owner_approved": true,
+  "version": 1
+}

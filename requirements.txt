@@ -1,0 +1,19 @@
+# Brand Rule Lab - Fixed Technology Stack (Python 3.11)
+# Streamlit Multipage UI
+streamlit>=1.35.0,<1.40.0
+
+# Document Ingestion & Image Processing
+PyMuPDF>=1.24.0,<1.25.0
+python-docx>=1.1.0,<1.2.0
+Pillow>=10.3.0,<11.0.0
+pytesseract>=0.3.10,<0.4.0
+
+# Environment Configuration
+python-dotenv>=1.0.1
+
+# HTTP / API Client for Live LLM Mode
+requests>=2.32.0,<3.0.0
+
+# Testing & Verification
+pytest>=8.2.0,<9.0.0
+pytest-mock>=3.14.0

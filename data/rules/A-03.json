@@ -1,0 +1,32 @@
+{
+  "rule_id": "A-03",
+  "predicate_type": "alt_text",
+  "scope": {
+    "product": "*",
+    "market": "*",
+    "channel": "*"
+  },
+  "parameters": {
+    "min_length_chars": 8,
+    "forbidden_generic_terms": ["image", "photo", "picture", "graphic", "logo", "banner"],
+    "explanation": "Image missing descriptive alt-text for screen readers, violating WCAG Guideline 1.1."
+  },
+  "positive_test_cases": [
+    {
+      "alt_text": "",
+      "expected_match": true
+    },
+    {
+      "alt_text": "photo",
+      "expected_match": true
+    }
+  ],
+  "negative_test_cases": [
+    {
+      "alt_text": "Monsoon Clear Skin acne cleanser bottle on warm white backdrop",
+      "expected_match": false
+    }
+  ],
+  "owner_approved": true,
+  "version": 1
+}

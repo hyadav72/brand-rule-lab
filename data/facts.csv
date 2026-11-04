@@ -1,0 +1,13 @@
+fact_id,version,product_id,market,fact_text,permitted_wording,valid_from,expires_at,owner
+F-112,1,prod_monsoon,US,"Clears blemishes over 8-week continuous clinical trial.","Clears blemishes in 8 weeks with daily use.",2024-01-01,2024-06-30,brand_science
+F-112,2,prod_monsoon,US,"Clears blemishes over 6-week continuous clinical trial.","Clears blemishes in 6 weeks with daily use.",2024-07-01,2024-12-31,brand_science
+F-112,3,prod_monsoon,US,"Clinically proven to reduce acne breakouts in 4 weeks with twice-daily use.","Reduces breakouts in 4 weeks with twice-daily use.",2025-01-01,2026-12-31,brand_science
+F-112,4,prod_monsoon,US,"Clinically proven to reduce acne breakouts in 2 weeks with reformulated 2.5% Micronized Benzoyl Peroxide.","Reduces breakouts in 2 weeks with micronized formula.",2026-06-01,2027-12-31,brand_science
+F-113,1,prod_monsoon,US,"Contains 2.5% Benzoyl Peroxide for gentle and effective blemish reduction.","Contains 2.5% Benzoyl Peroxide.",2025-01-01,2027-12-31,regulatory_affairs
+F-201,1,prod_glow,US,"Contains 10% stabilized L-ascorbic acid for visible radiance within 14 days.","10% stabilized Vitamin C visibly enhances radiance in 14 days.",2025-01-01,2027-12-31,brand_science
+F-202,1,prod_glow,US,"Dermatologist-tested for sensitive skin and certified non-comedogenic.","Dermatologist-tested for sensitive skin.",2025-01-01,2027-12-31,clinical_research
+F-301,1,prod_barrier,UK,"Increases skin barrier hydration by 48% after 24 hours of application.","Hydrates skin barrier by 48% in 24 hours.",2025-01-01,2027-12-31,clinical_research
+F-302,1,prod_barrier,UK,"Formulated with 3 essential skin-identical ceramides (1, 3, 6-II) and multi-weight hyaluronic acid.","3 essential ceramides and hyaluronic acid.",2025-01-01,2027-12-31,formulation_lab
+F-OFFER-01,1,prod_monsoon,US,"Diwali early-bird special discount 20% off all bundles ends 31 October 2026.","Save 20% on bundles through Oct 31.",2026-10-01,2026-10-31,growth_marketing
+F-OFFER-02,1,prod_monsoon,US,"Fall Flash Sale offers 15% off orders over $50, valid until 12 November 2026.","15% off orders over $50 until Nov 12.",2026-11-01,2026-11-12,growth_marketing
+F-OFFER-03,1,prod_monsoon,US,"Free shipping on all US holiday orders placed before 31 December 2026.","Free US shipping through Dec 31.",2026-11-01,2026-12-31,growth_marketing

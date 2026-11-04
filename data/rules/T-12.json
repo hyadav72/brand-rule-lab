@@ -1,0 +1,38 @@
+{
+  "rule_id": "T-12",
+  "predicate_type": "regex",
+  "scope": {
+    "product": "*",
+    "market": "*",
+    "channel": "*"
+  },
+  "parameters": {
+    "pattern": "\\bBPO\\b",
+    "replacement": "Benzoyl Peroxide",
+    "explanation": "Abbreviation 'BPO' is prohibited in consumer-facing copy under regulatory labeling guidelines. Use full chemical name 'Benzoyl Peroxide'."
+  },
+  "positive_test_cases": [
+    {
+      "input": "Our 2.5% BPO wash clears breakouts.",
+      "expected_match": true,
+      "matched_terms": ["BPO"]
+    },
+    {
+      "input": "Powered by active BPO complex.",
+      "expected_match": true,
+      "matched_terms": ["BPO"]
+    }
+  ],
+  "negative_test_cases": [
+    {
+      "input": "Our 2.5% Benzoyl Peroxide wash clears breakouts.",
+      "expected_match": false
+    },
+    {
+      "input": "Gentle daily cleanser with soothing botanicals.",
+      "expected_match": false
+    }
+  ],
+  "owner_approved": true,
+  "version": 1
+}
