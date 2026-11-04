@@ -1,64 +1,75 @@
 # Brand Rule Lab — Project Status & Execution Dashboard
 
 **Current Phase:** Phase 0 (Day 0 Preparation)  
-**Hackathon Target:** INKLOOM AI Hackathon MVP  
-**Last Updated:** 2026-11-04  
+**Hackathon Target:** INKLOOM AI Hackathon MVP (Compressed 48-Hour Deadline)  
+**Last Updated:** 2026-11-05  
 **Architect:** Agent A0 (Architect & Integrator)  
 
 ---
 
-## 1. Executive Summary
-Phase 0 foundation is established. The repository structure, Git version control, dependency pinning, Day 0 draft specifications, shared contracts (`core/models.py`), schema definitions (`core/schema.sql`), seed datasets, and evaluation test cases are authored. Application implementation code remains strictly gated until the official hackathon window opens (Day 1).
+## 1. Executive Summary & Strategy
+The project timeline is compressed from 5 days to **48 Hours (2 Days)**:
+- **Day 1 (Hours 0–24): Core Implementation**: Core review workflow, database schema & seeds, rule engine with deterministic predicates, LLM adapter (mock & live), Creator/Reviewer/Fact Owner UI shells, and automated tests.
+- **Day 2 (Hours 24–48): Integration, Drift Ledger & Submission**: Single-SQL fact drift cascade, claim lineage & stable IDs, 60-claim matching evaluation, 30-prompt injection tests, 10-asset timing study, offline backup, fresh-clone launch verification, and demo script.
+
+### Priority Hierarchy
+- **P0 (Absolute Must-Have):** Core review loop, deterministic rules, fact matching, human approval, claim ledger (`approved_claims`), single-SQL fact drift cascade, and offline mock LLM.
+- **P1 (High Priority):** Document ingestion (PDF, DOCX, TXT), WCAG AA contrast check, role dashboards, and evaluation suites.
+- **P2 (Polish):** Advanced UI animations, image OCR fine-tuning.
 
 ---
 
-## 2. Task Tracking Matrix
+## 2. Task Tracking Matrix (48-Hour Schedule)
 
-| Phase / Day | Task ID | Description | Owner | Status | Verification / Artifact |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Day 0** | **D0-01** | Git repository initialization | A0 | ✅ Complete | `.git/` initialized |
-| **Day 0** | **D0-02** | Repository directory structure layout | A0 | ✅ Complete | `app/`, `core/`, `data/`, `eval/`, `docs/`, `tests/` |
-| **Day 0** | **D0-03** | Pinned `requirements.txt` (Python 3.11 stack) | A0 | ✅ Complete | Streamlit, PyMuPDF, python-docx, Pillow, pytest |
-| **Day 0** | **D0-04** | Configuration templates (`.env.example`, `.gitignore`) | A0 | ✅ Complete | Pinned configuration and git hygiene |
-| **Day 0** | **D0-05** | Shared Contracts & Stubs (`core/models.py`) | A0 | ✅ Complete | Dataclasses, Enums, Stubs frozen |
-| **Day 0** | **D0-06** | SQLite relational schema (`core/schema.sql`) | A0/A1 | ✅ Complete | Tables, triggers, CHECK constraints |
-| **Day 0** | **D0-07** | Seed data specifications (`products.csv`, `facts.csv`) | A1 | ✅ Complete | 3 products, 12 facts (including F-112 v1-v4) |
-| **Day 0** | **D0-08** | Seed rule JSON specifications (`data/rules/`) | A2 | ✅ Complete | V-04, T-12, C-01, D-02, T-05, A-01, A-03 |
-| **Day 0** | **D0-09** | 60-claim labeled evaluation dataset (`eval/claims_60.csv`) | A5 | ✅ Complete | 60 labeled claims across products and states |
-| **Day 0** | **D0-10** | 30 adversarial prompt injection test cases (`eval/injection_30.jsonl`) | A5 | ✅ Complete | 30 injection vectors |
-| **Day 0** | **D0-11** | Engineering assumptions & ADR logs | A0 | ✅ Complete | `docs/assumptions.md`, `docs/architecture_decisions.md` |
-| **Day 1** | **D1-01** | Environment readiness: Python 3.11 verification | Team | ⏳ Pending Blocker | Waiting on Python 3.11 environment setup |
-| **Day 1** | **D1-02** | Database initialization & seed loader (`db.py`, `seed.py`) | A1 | ⏳ Ready | Day 1 window |
-| **Day 1** | **D1-03** | Multi-format ingestion pipeline (`ingest/`) | A1 | ⏳ Ready | Day 1 window |
-| **Day 1** | **D1-04** | LLM Adapter core (`llm/adapter.py`, `mock.py`, `live.py`) | A3 | ⏳ Ready | Day 1 window |
-| **Day 1** | **D1-05** | Streamlit shell, theme, and role switcher | A4 | ⏳ Ready | Day 1 window |
-| **Day 2** | **D2-01** | Rule engine and pure Python predicates (`rules/`) | A2 | ⏳ Ready | Day 2 window |
-| **Day 2** | **D2-02** | Rule Test Runner page and automated test suite | A4/A5 | ⏳ Ready | Day 2 window |
-| **Day 3** | **D3-01** | Claim extraction and fact ranking pipeline | A3 | ⏳ Ready | Day 3 window |
-| **Day 3** | **D3-02** | Intent-preserving rewrite generator and re-checker | A3 | ⏳ Ready | Day 3 window |
-| **Day 3** | **D3-03** | Creator and Reviewer dashboards | A4 | ⏳ Ready | Day 3 window |
-| **Day 4** | **D4-01** | Claim ledger & stable claim ID generation (`ledger/`) | A1 | ⏳ Ready | Day 4 window |
-| **Day 4** | **D4-02** | Single-SQL fact drift cascade and expiry sweeps | A1 | ⏳ Ready | Day 4 window |
-| **Day 4** | **D4-03** | Fact Owner dashboard with drift statistics | A4 | ⏳ Ready | Day 4 window |
-| **Day 5** | **D5-01** | 60-claim matching evaluation execution | A5 | ⏳ Ready | Day 5 window |
-| **Day 5** | **D5-02** | 30-prompt adversarial injection verification | A5 | ⏳ Ready | Day 5 window |
-| **Day 5** | **D5-03** | 10-asset review turnaround timing study | A5 | ⏳ Ready | Day 5 window |
-| **Day 5** | **D5-04** | Final demo script verification & release freeze | A0 | ⏳ Ready | Day 5 window |
+| Phase / Day | Task ID | Description | Priority | Owner | Status | Verification / Artifact |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Day 0** | **D0-01** | Git repository initialization | P0 | A0 | ✅ Complete | `.git/` initialized |
+| **Day 0** | **D0-02** | Repository directory structure layout | P0 | A0 | ✅ Complete | `app/`, `core/`, `data/`, `eval/`, `docs/`, `tests/` |
+| **Day 0** | **D0-03** | Pinned `requirements.txt` (Python 3.11 stack) | P0 | A0 | ✅ Complete | Streamlit, PyMuPDF, python-docx, Pillow, pytest |
+| **Day 0** | **D0-04** | Configuration templates (`.env.example`, `.gitignore`) | P0 | A0 | ✅ Complete | Pinned configuration and git hygiene |
+| **Day 0** | **D0-05** | Shared Contracts & Stubs (`core/models.py`) | P0 | A0 | ✅ Complete | Dataclasses, Enums, Stubs frozen |
+| **Day 0** | **D0-06** | SQLite relational schema (`core/schema.sql`) | P0 | A0/A1 | ✅ Complete | Tables, triggers, CHECK constraints |
+| **Day 0** | **D0-07** | Seed data specifications (`products.csv`, `facts.csv`) | P0 | A1 | ✅ Complete | 3 products, 12 facts (including F-112 v1-v4) |
+| **Day 0** | **D0-08** | Seed rule JSON specifications (`data/rules/`) | P0 | A2 | ✅ Complete | V-04, T-12, C-01, D-02, T-05, A-01, A-03 |
+| **Day 0** | **D0-09** | 60-claim labeled evaluation dataset (`eval/claims_60.csv`) | P1 | A5 | ✅ Complete | 60 labeled claims across products and states |
+| **Day 0** | **D0-10** | 30 adversarial prompt injection test cases (`eval/injection_30.jsonl`) | P1 | A5 | ✅ Complete | 30 injection vectors |
+| **Day 0** | **D0-11** | Engineering assumptions & ADR logs (ADR 001–007) | P0 | A0 | ✅ Complete | `docs/assumptions.md`, `docs/architecture_decisions.md` |
+| **Day 0** | **D0-12** | Python 3.15 Compatibility Investigation | P0 | A0 | ❌ Rejected | Failed on `pandas`/`streamlit` (lack of wheels) |
+| **Day 1** | **D1-01** | Python 3.11 environment setup & package installation | P0 | Team | ⏳ Pending Blocker | Awaiting Python 3.11 installer completion |
+| **Day 1** | **D1-02** | Database initialization & seed import (`db.py`, `seed.py`) | P0 | A1 | ⏳ Ready | Hours 0–4 |
+| **Day 1** | **D1-03** | Multi-format ingestion pipeline (`ingest/`) | P1 | A1 | ⏳ Ready | Hours 2–6 |
+| **Day 1** | **D1-04** | LLM Adapter core (`llm/adapter.py`, `mock.py`, `live.py`) | P0 | A3 | ⏳ Ready | Hours 2–8 |
+| **Day 1** | **D1-05** | Rule engine & pure Python predicates (`rules/engine.py`) | P0 | A2 | ⏳ Ready | Hours 4–10 |
+| **Day 1** | **D1-06** | Streamlit shell, theme, and role switcher (`app/`) | P0 | A4 | ⏳ Ready | Hours 6–12 |
+| **Day 1** | **D1-07** | Claim extraction, fact ranking & rewrite re-check | P0 | A3 | ⏳ Ready | Hours 8–16 |
+| **Day 1** | **D1-08** | Creator & Reviewer UI workflows | P0 | A4 | ⏳ Ready | Hours 12–20 |
+| **Day 1** | **D1-09** | Automated tests for Day 1 modules (predicates, ingestion) | P0 | A5 | ⏳ Ready | Hours 16–24 |
+| **Day 2** | **D2-01** | Stable claim ID generation (`SC-xxxx`) and approved text hashing | P0 | A1 | ⏳ Ready | Hours 24–28 |
+| **Day 2** | **D2-02** | Single-SQL fact drift cascade and expiry sweeps (`ledger/`) | P0 | A1 | ⏳ Ready | Hours 26–30 |
+| **Day 2** | **D2-03** | Fact Owner dashboard with drift statistics & impact preview | P0 | A4 | ⏳ Ready | Hours 28–34 |
+| **Day 2** | **D2-04** | Rule Tests Runner page for hackathon judges | P1 | A4/A2 | ⏳ Ready | Hours 32–36 |
+| **Day 2** | **D2-05** | 60-claim matching evaluation execution & benchmark | P1 | A5 | ⏳ Ready | Hours 34–38 |
+| **Day 2** | **D2-06** | 30-prompt adversarial injection verification | P1 | A5 | ⏳ Ready | Hours 36–40 |
+| **Day 2** | **D2-07** | 10-asset review turnaround timing study | P1 | A5 | ⏳ Ready | Hours 38–42 |
+| **Day 2** | **D2-08** | Offline demo verification, backup DB & final README | P0 | A0/A5 | ⏳ Ready | Hours 42–46 |
+| **Day 2** | **D2-09** | Fresh-clone install verification & release freeze | P0 | A0 | ⏳ Ready | Hours 46–48 |
 
 ---
 
 ## 3. Known Bugs & Issues
-- None (zero application runtime code committed per Day 0 restriction).
+- None (zero application runtime code committed per Day 0 boundary).
 
 ---
 
 ## 4. Current Blockers & Technical Risks
-1. **Python 3.11 Interpreter Missing**:
-   - The host system currently only provides `Python 3.15.0b1` (a pre-release beta version that lacks compiled wheels for `PyMuPDF` and `Pillow`).
-   - Per project non-negotiables, the required runtime is **Python 3.11**.
-   - **Resolution Required:** User must install Python 3.11 (instructions provided in Phase 0 report).
+1. **Python 3.11 Interpreter Installation (Manual Action Required)**:
+   - Python 3.15 empirical test proved that `streamlit` and `Pillow` cannot install due to missing pre-compiled wheels for `pandas` on Windows.
+   - User must install official Python 3.11.9 (64-bit) with `"Add python.exe to PATH"` checked.
+2. **48-Hour Deadline Compression**:
+   - Compressed timeframe requires absolute discipline: P0 features must take precedence over cosmetic UI flourishes.
+   - Mock LLM mode guarantees that the entire demo scenario (*Monsoon Clear Skin*) runs instantaneously without risk of live API quota or network failures.
 
 ---
 
 ## 5. Next Recommended Action
-Await user review and confirmation of Python 3.11 installation. Upon confirmation and opening of the Day 1 hackathon window, begin **Phase 1: Foundation (Database setup, Seed Import, File Ingestion, and Mock LLM Adapter)**.
+Awaiting user notification of Python 3.11 installation. Upon confirmation and opening of the Day 1 hackathon window, begin **Phase 1: Day 1 Core Implementation (Tasks D1-01 through D1-09)**.

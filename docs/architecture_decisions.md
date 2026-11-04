@@ -50,3 +50,17 @@
 - **Context:** Live network calls during hackathon judging presentations often fail due to Wi-Fi drops, API quotas, or third-party latency.
 - **Decision:** Implement an abstract `LLMAdapter` base class with two concrete implementations: `LiveLLM` and `MockLLM`. `MockLLM` returns deterministic, canned responses for tests and offline demo presentation.
 - **Consequences:** Guarantees instantaneous, 100% reliable offline demonstrations and enables fast, network-free automated testing.
+
+---
+
+### ADR 007: Python Runtime Compatibility Evaluation (Python 3.15 vs Python 3.11)
+- **Status:** Rejected (Python 3.15 rejected; Python 3.11 reaffirmed and enforced)
+- **Context:** Investigated whether the host's existing `Python 3.15.0b1` could be utilized in place of installing Python 3.11 to accelerate the compressed 48-hour deadline.
+- **Empirical Test Results:**
+  1. An isolated virtual environment was instantiated with Python 3.15.0b1 and pip.
+  2. Pure-Python packages (`pytest 9.2.0`, `requests 2.34.2`, `python-dotenv 1.2.4`) installed successfully.
+  3. Installing `streamlit` triggered a downstream dependency on `pandas` (>=1.4.0).
+  4. Neither `pandas` nor `Pillow` have pre-compiled Windows x64 binary wheels (`.whl`) on PyPI for Python 3.15.
+  5. Pip attempted source builds via the Meson build system, which failed catastrophically with `ERROR: Could not find ... vswhere.exe` due to the absence of Microsoft Visual Studio C++ compilers.
+- **Decision:** Reject Python 3.15. Reaffirm and enforce Python 3.11 as mandated by Section 3 of the build plan. Python 3.11 has full pre-compiled binary wheel coverage across all dependencies, installing in under 60 seconds with zero compilation requirements.
+
