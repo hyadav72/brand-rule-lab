@@ -1,0 +1,45 @@
+{
+  "rule_id": "L-01",
+  "predicate_type": "logo_hash",
+  "scope": {
+    "product": "*",
+    "market": "*",
+    "channel": "*"
+  },
+  "parameters": {
+    "max_hamming_distance": 10,
+    "hash_size": 8,
+    "reference_logo_path": "data/demo_assets/monsoon_logo_ref.png",
+    "explanation": "Brand logo must perceptually match the registered vector/raster brand asset within a Hamming distance threshold of <= 10. Distortions, unapproved alterations, or unofficial color swaps fail compliance."
+  },
+  "positive_test_cases": [
+    {
+      "candidate": "data/demo_assets/monsoon_logo_different.png",
+      "reference": "data/demo_assets/monsoon_logo_ref.png",
+      "expected_match": true,
+      "description": "Completely different logo fails perceptual threshold"
+    }
+  ],
+  "negative_test_cases": [
+    {
+      "candidate": "data/demo_assets/monsoon_logo_ref.png",
+      "reference": "data/demo_assets/monsoon_logo_ref.png",
+      "expected_match": false,
+      "description": "Exact canonical reference logo match"
+    },
+    {
+      "candidate": "data/demo_assets/monsoon_logo_resized.png",
+      "reference": "data/demo_assets/monsoon_logo_ref.png",
+      "expected_match": false,
+      "description": "Resized brand logo matches reference"
+    },
+    {
+      "candidate": "data/demo_assets/monsoon_logo_altered.png",
+      "reference": "data/demo_assets/monsoon_logo_ref.png",
+      "expected_match": false,
+      "description": "Slightly altered brand logo within tolerance threshold"
+    }
+  ],
+  "owner_approved": true,
+  "version": 1
+}

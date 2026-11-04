@@ -7,9 +7,12 @@ Deterministic, idempotent, and transparent.
 """
 
 from __future__ import annotations
+import io
 import re
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
+from PIL import Image
 from core.a11y.alt_text import validate_alt_text
 from core.a11y.contrast import calculate_contrast_ratio, evaluate_wcag_aa
 
@@ -157,3 +160,78 @@ def predicate_required_text(
         if search_phrase not in target:
             missing.append(phrase)
     return missing
+
+
+def compute_dhash(image_input: Union[bytes, Image.Image, str, Path], hash_size: int = 8) -> int:
+    """
+    Compute 64-bit difference hash (dHash) using Pillow.
+    Normalizes image by converting to grayscale and scaling to (hash_size + 1, hash_size).
+    Calculates differences between adjacent horizontal pixels to construct a deterministic bit hash.
+    """
+    if isinstance(image_input, (str, Path)):
+        img = Image.open(image_input)
+    elif isinstance(image_input, bytes):
+        img = Image.open(io.BytesIO(image_input))
+    elif isinstance(image_input, Image.Image):
+        img = image_input
+    else:
+        raise ValueError(f"Unsupported image input type: {type(image_input)}")
+
+    gray_resized = img.convert("L").resize((hash_size + 1, hash_size), Image.Resampling.LANCZOS)
+    pixels = list(gray_resized.getdata())
+    diff = 0
+    for row in range(hash_size):
+        row_start = row * (hash_size + 1)
+        for col in range(hash_size):
+            p1 = pixels[row_start + col]
+            p2 = pixels[row_start + col + 1]
+            if p1 > p2:
+                diff |= 1 << (row * hash_size + col)
+    return diff
+
+
+def compute_hamming_distance(hash1: int, hash2: int) -> int:
+    """Compute Hamming distance (differing bit count) between two 64-bit hashes."""
+    return bin(hash1 ^ hash2).count("1")
+
+
+def predicate_logo_hash(
+    candidate_image: Optional[Union[bytes, Image.Image, str, Path]],
+    reference_logo: Optional[Union[bytes, Image.Image, str, Path]],
+    max_hamming_distance: int = 10,
+) -> Tuple[bool, Optional[int], str]:
+    """
+    Compare candidate logo against registered reference brand logo.
+    Threshold: max_hamming_distance (default: 10 out of 64 bits).
+    Returns (has_violation: bool, hamming_distance: Optional[int], message: str).
+    
+    Coverage Boundary:
+    If product has no registered reference logo asset, predicate returns has_violation=False
+    with an informational notice explaining that the coverage boundary has been met.
+    """
+    if candidate_image is None or (isinstance(candidate_image, bytes) and len(candidate_image) == 0):
+        return False, None, "No candidate image provided for logo verification."
+
+    if reference_logo is None or (isinstance(reference_logo, bytes) and len(reference_logo) == 0):
+        return False, None, "No registered reference logo asset for this product; logo verification check skipped (coverage boundary notice)."
+
+    try:
+        cand_hash = compute_dhash(candidate_image)
+        ref_hash = compute_dhash(reference_logo)
+        distance = compute_hamming_distance(cand_hash, ref_hash)
+
+        if distance > max_hamming_distance:
+            return (
+                True,
+                distance,
+                f"Logo perceptual difference (Hamming distance {distance}/64) exceeds threshold ({max_hamming_distance}). Unapproved logo alteration or spoofing detected.",
+            )
+
+        return (
+            False,
+            distance,
+            f"Logo matches approved reference asset (Hamming distance {distance}/64 <= threshold {max_hamming_distance}).",
+        )
+    except Exception as e:
+        return True, None, f"Failed to compute logo perceptual hash: {e}"
+

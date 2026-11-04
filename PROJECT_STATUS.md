@@ -30,7 +30,7 @@ The project timeline is compressed from 5 days to **48 Hours (2 Days)**:
 | **Day 0** | **D0-05** | Shared Contracts & Stubs (`core/models.py`) | P0 | A0 | ✅ Complete | Dataclasses, Enums, Stubs frozen |
 | **Day 0** | **D0-06** | SQLite relational schema (`core/schema.sql`) | P0 | A0/A1 | ✅ Complete | Tables, triggers, CHECK constraints |
 | **Day 0** | **D0-07** | Seed data specifications (`products.csv`, `facts.csv`) | P0 | A1 | ✅ Complete | 3 products, 12 facts (including F-112 v1-v4) |
-| **Day 0** | **D0-08** | Seed rule JSON specifications (`data/rules/`) | P0 | A2 | ✅ Complete | V-04, T-12, C-01, D-02, T-05, A-01, A-03 |
+| **Day 0** | **D0-08** | Seed rule JSON specifications (`data/rules/`) | P0 | A2 | ✅ Complete | 12/12 Rules: V-04, T-12, C-01, D-02, T-05, A-01, A-02, A-03, T-08, T-15, R-01, L-01 |
 | **Day 0** | **D0-09** | 60-claim labeled evaluation dataset (`eval/claims_60.csv`) | P1 | A5 | ✅ Complete | 60 labeled claims across products and states |
 | **Day 0** | **D0-10** | 30 adversarial prompt injection test cases (`eval/injection_30.jsonl`) | P1 | A5 | ✅ Complete | 30 injection vectors |
 | **Day 0** | **D0-11** | Engineering assumptions & ADR logs (ADR 001–007) | P0 | A0 | ✅ Complete | `docs/assumptions.md`, `docs/architecture_decisions.md` |
@@ -57,13 +57,14 @@ The project timeline is compressed from 5 days to **48 Hours (2 Days)**:
 ---
 
 ## 3. Known Bugs & Issues
-- None. All 35 tests pass cleanly in under 2 seconds.
+- None. All 41 automated pytest tests and all 41 declarative rule unit tests pass cleanly in under 2 seconds.
 
 ---
 
 ## 4. Current Blockers & Technical Risks
 - **Blockers:** None.
-- **Demo Readiness:** 100% functional, both offline (via `MockLLM`) and with live API adapter.
+- **Rule Inventory:** 12/12 planned rules implemented with deterministic Python predicates, owner approval, and unit tests.
+- **Demo Readiness:** 100% functional, both offline (via `MockLLM`) and with live API adapter. Single-SQL drift verified (0 LLM calls, 1 SQL UPDATE). Distinct UNLINKED vs NOT_OBSERVED boundaries established.
 
 ---
 

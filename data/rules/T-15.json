@@ -1,0 +1,49 @@
+{
+  "rule_id": "T-15",
+  "predicate_type": "term_list",
+  "scope": {
+    "product": "*",
+    "market": "*",
+    "channel": "*"
+  },
+  "parameters": {
+    "disallowed_terms": [
+      "works for everyone",
+      "100% of users cured",
+      "guaranteed for every skin type",
+      "never get another breakout",
+      "zero breakouts forever"
+    ],
+    "case_sensitive": false,
+    "suggested_substitutions": {
+      "works for everyone": "formulated for most skin types",
+      "guaranteed for every skin type": "suitable for diverse skin profiles",
+      "never get another breakout": "helps prevent future blemishes"
+    },
+    "explanation": "Universal influencer promises claiming universal outcome across 100% of consumer demographics violate ASCI truth-in-advertising guidelines."
+  },
+  "positive_test_cases": [
+    {
+      "input": "This wash is guaranteed for every skin type and works for everyone.",
+      "expected_match": true,
+      "matched_terms": ["guaranteed for every skin type", "works for everyone"]
+    },
+    {
+      "input": "Use this twice daily to ensure zero breakouts forever.",
+      "expected_match": true,
+      "matched_terms": ["zero breakouts forever"]
+    }
+  ],
+  "negative_test_cases": [
+    {
+      "input": "Formulated for most skin types and tested under dermatological supervision.",
+      "expected_match": false
+    },
+    {
+      "input": "Helps reduce the frequency of future blemishes with regular application.",
+      "expected_match": false
+    }
+  ],
+  "owner_approved": true,
+  "version": 1
+}

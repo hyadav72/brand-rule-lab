@@ -27,6 +27,7 @@ from core.models import (
 )
 from core.rules.predicates import (
     predicate_date_window,
+    predicate_logo_hash,
     predicate_numeric_timeframe,
     predicate_regex,
     predicate_required_text,
@@ -96,9 +97,10 @@ class RuleEngine:
         scope = rule.scope
         for key in ["product", "market", "channel"]:
             rule_val = scope.get(key, "*")
-            ctx_val = context.get(key)
-            if rule_val != "*" and ctx_val and rule_val != ctx_val:
-                return False
+            if rule_val != "*":
+                ctx_val = context.get(key)
+                if ctx_val != rule_val:
+                    return False
         return True
 
     def run_rules(
@@ -256,6 +258,124 @@ class RuleEngine:
                         suggested_rewrite="Product bottle on neutral studio background",
                     ))
 
+        # 7. Evaluate Superlatives Rule T-08 (miracle, magic, cure-all)
+        if "T-08" in self.rules and self._matches_scope(self.rules["T-08"], context):
+            rule = self.rules["T-08"]
+            terms = rule.parameters.get("disallowed_terms", [])
+            subst = rule.parameters.get("suggested_substitutions", {})
+            for term in terms:
+                for match in predicate_regex(text, r"\b" + re.escape(term) + r"\b"):
+                    start, end, matched = match
+                    sug = subst.get(matched.lower(), "proven")
+                    findings.append(Finding(
+                        finding_id=f"FND-T08-{start}",
+                        asset_id=asset_id,
+                        kind=FindingKind.TONE,
+                        severity=Severity.BLOCK,
+                        span_start=start,
+                        span_end=end,
+                        source_text=matched,
+                        rule_id="T-08",
+                        link_state=LinkState.UNLINKED,
+                        message=f"Superlative phrasing '{matched}' violates ASCI/FTC substantiation standards.",
+                        next_step=f"Replace with qualified, substantiated terminology (e.g., '{sug}').",
+                        suggested_rewrite=sug,
+                    ))
+
+        # 8. Evaluate Universal Outcome Rule T-15 (guaranteed for every skin type, works for everyone)
+        if "T-15" in self.rules and self._matches_scope(self.rules["T-15"], context):
+            rule = self.rules["T-15"]
+            terms = rule.parameters.get("disallowed_terms", [])
+            subst = rule.parameters.get("suggested_substitutions", {})
+            for term in terms:
+                for match in predicate_regex(text, r"\b" + re.escape(term) + r"\b"):
+                    start, end, matched = match
+                    sug = subst.get(matched.lower(), "formulated for most skin types")
+                    findings.append(Finding(
+                        finding_id=f"FND-T15-{start}",
+                        asset_id=asset_id,
+                        kind=FindingKind.CLAIM,
+                        severity=Severity.BLOCK,
+                        span_start=start,
+                        span_end=end,
+                        source_text=matched,
+                        rule_id="T-15",
+                        link_state=LinkState.UNLINKED,
+                        message=f"Universal claim '{matched}' violates truth-in-advertising guidelines.",
+                        next_step=f"Replace with realistic qualification (e.g., '{sug}').",
+                        suggested_rewrite=sug,
+                    ))
+
+        # 9. Evaluate Regulatory Mandatory Disclaimer R-01 (US PDP)
+        if "R-01" in self.rules and self._matches_scope(self.rules["R-01"], context):
+            rule = self.rules["R-01"]
+            req_phrases = rule.parameters.get("required_phrases", [])
+            missing = predicate_required_text(text, req_phrases)
+            if missing:
+                findings.append(Finding(
+                    finding_id="FND-R01-0",
+                    asset_id=asset_id,
+                    kind=FindingKind.CLAIM,
+                    severity=Severity.BLOCK,
+                    span_start=0,
+                    span_end=min(len(text), 30),
+                    source_text=text[:min(len(text), 30)],
+                    rule_id="R-01",
+                    link_state=LinkState.UNLINKED,
+                    message=f"Missing mandatory FDA statutory disclaimer: {', '.join(missing)}.",
+                    next_step="Add statutory FDA disclaimer to US PDP copy.",
+                    suggested_rewrite="These statements have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease.",
+                ))
+
+        # 10. Evaluate WCAG Contrast (A-01 / A-02) if color parameters are passed in context
+        fg_col = context.get("foreground_hex")
+        bg_col = context.get("background_hex")
+        font_size = context.get("font_size_pt", 12)
+        if fg_col and bg_col:
+            is_large = font_size >= 18
+            target_rule_id = "A-02" if is_large else "A-01"
+            if target_rule_id in self.rules and self._matches_scope(self.rules[target_rule_id], context):
+                passes_wcag, ratio = evaluate_wcag_aa(fg_col, bg_col, is_large_text=is_large)
+                if not passes_wcag:
+                    threshold = 3.0 if is_large else 4.5
+                    findings.append(Finding(
+                        finding_id=f"FND-{target_rule_id}-0",
+                        asset_id=asset_id,
+                        kind=FindingKind.ACCESSIBILITY,
+                        severity=Severity.BLOCK,
+                        span_start=0,
+                        span_end=min(len(text), 20),
+                        source_text=f"Color pair {fg_col} on {bg_col}",
+                        rule_id=target_rule_id,
+                        link_state=LinkState.UNLINKED,
+                        message=f"Contrast ratio {ratio:.2f}:1 fails WCAG AA requirement (minimum {threshold}:1 for {'large' if is_large else 'standard'} text).",
+                        next_step=f"Increase contrast between foreground text ({fg_col}) and background ({bg_col}).",
+                        suggested_rewrite="#13171A on #FFFFFF",
+                    ))
+
+        # 11. Evaluate Logo Hash (L-01) if candidate and reference logo are available
+        if "L-01" in self.rules and self._matches_scope(self.rules["L-01"], context):
+            cand_logo = context.get("candidate_logo") or (doc.images[0] if doc.images else None)
+            ref_logo = context.get("reference_logo")
+            if cand_logo and ref_logo:
+                rule = self.rules["L-01"]
+                max_d = rule.parameters.get("max_hamming_distance", 10)
+                has_viol, dist, msg = predicate_logo_hash(cand_logo, ref_logo, max_hamming_distance=max_d)
+                if has_viol:
+                    findings.append(Finding(
+                        finding_id="FND-L01-0",
+                        asset_id=asset_id,
+                        kind=FindingKind.CLAIM,
+                        severity=Severity.BLOCK,
+                        span_start=0,
+                        span_end=min(len(text), 20),
+                        source_text="[Brand Logo Asset]",
+                        rule_id="L-01",
+                        link_state=LinkState.UNLINKED,
+                        message=msg,
+                        next_step="Replace altered or distorted logo with registered official brand logo asset.",
+                    ))
+
         # Deduplicate and sort deterministically by span_start
         seen_keys = set()
         unique_findings = []
@@ -311,16 +431,27 @@ class RuleEngine:
                     pub = test.get("publish_date")
                     has_v, _ = predicate_date_window(inp, app_end, pub)
                     passed = has_v
+                elif rule.predicate_type == "required_text":
+                    req_phrases = rule.parameters.get("required_phrases", [])
+                    missing = predicate_required_text(inp, req_phrases)
+                    passed = len(missing) > 0
                 elif rule.predicate_type == "wcag_contrast":
                     fg = test.get("foreground", "#000000")
                     bg = test.get("background", "#FFFFFF")
-                    passes_wcag, _ = evaluate_wcag_aa(fg, bg)
+                    is_large = rule.parameters.get("is_large_text", False) or test.get("font_size_pt", 0) >= 18
+                    passes_wcag, _ = evaluate_wcag_aa(fg, bg, is_large_text=is_large)
                     # For positive test case, expected_match: true means it DETECTED a violation (i.e. fails contrast)
                     passed = not passes_wcag
                 elif rule.predicate_type == "alt_text":
                     alt = test.get("alt_text", "")
                     valid, _ = validate_alt_text(alt)
                     passed = not valid  # violation detected
+                elif rule.predicate_type == "logo_hash":
+                    cand = test.get("candidate")
+                    ref = test.get("reference")
+                    max_d = rule.parameters.get("max_hamming_distance", 10)
+                    has_v, _, _ = predicate_logo_hash(cand, ref, max_hamming_distance=max_d)
+                    passed = has_v
 
                 results.append({
                     "rule_id": rule.rule_id,
@@ -351,15 +482,26 @@ class RuleEngine:
                     pub = test.get("publish_date")
                     has_v, _ = predicate_date_window(inp, app_end, pub)
                     passed = not has_v
+                elif rule.predicate_type == "required_text":
+                    req_phrases = rule.parameters.get("required_phrases", [])
+                    missing = predicate_required_text(inp, req_phrases)
+                    passed = len(missing) == 0
                 elif rule.predicate_type == "wcag_contrast":
                     fg = test.get("foreground", "#000000")
                     bg = test.get("background", "#FFFFFF")
-                    passes_wcag, _ = evaluate_wcag_aa(fg, bg)
+                    is_large = rule.parameters.get("is_large_text", False) or test.get("font_size_pt", 0) >= 18
+                    passes_wcag, _ = evaluate_wcag_aa(fg, bg, is_large_text=is_large)
                     passed = passes_wcag  # Clean contrast passes WCAG
                 elif rule.predicate_type == "alt_text":
                     alt = test.get("alt_text", "")
                     valid, _ = validate_alt_text(alt)
                     passed = valid  # Clean alt-text is valid
+                elif rule.predicate_type == "logo_hash":
+                    cand = test.get("candidate")
+                    ref = test.get("reference")
+                    max_d = rule.parameters.get("max_hamming_distance", 10)
+                    has_v, _, _ = predicate_logo_hash(cand, ref, max_hamming_distance=max_d)
+                    passed = not has_v
 
                 results.append({
                     "rule_id": rule.rule_id,

@@ -1,0 +1,45 @@
+{
+  "rule_id": "T-08",
+  "predicate_type": "term_list",
+  "scope": {
+    "product": "*",
+    "market": "*",
+    "channel": "*"
+  },
+  "parameters": {
+    "disallowed_terms": ["miracle", "magic", "miraculous", "magical", "cure-all"],
+    "case_sensitive": false,
+    "suggested_substitutions": {
+      "miracle": "proven",
+      "magic": "effective",
+      "miraculous": "significant",
+      "magical": "advanced",
+      "cure-all": "multi-action solution"
+    },
+    "explanation": "Superlative and pseudoscience phrasing ('miracle', 'magic') violates ASCI and FTC substantiation standards for cosmetic products."
+  },
+  "positive_test_cases": [
+    {
+      "input": "Experience the miracle acne formula that clears skin overnight.",
+      "expected_match": true,
+      "matched_terms": ["miracle"]
+    },
+    {
+      "input": "This magic serum delivers flawless results.",
+      "expected_match": true,
+      "matched_terms": ["magic"]
+    }
+  ],
+  "negative_test_cases": [
+    {
+      "input": "Experience the proven formula clinically tested on acne-prone skin.",
+      "expected_match": false
+    },
+    {
+      "input": "This effective serum delivers visible radiance in 14 days.",
+      "expected_match": false
+    }
+  ],
+  "owner_approved": true,
+  "version": 1
+}

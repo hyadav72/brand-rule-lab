@@ -1,0 +1,34 @@
+{
+  "rule_id": "A-02",
+  "predicate_type": "wcag_contrast",
+  "scope": {
+    "product": "*",
+    "market": "*",
+    "channel": "banner"
+  },
+  "parameters": {
+    "min_contrast_ratio": 3.0,
+    "is_large_text": true,
+    "explanation": "Large text (>=18pt or >=14pt bold) fails WCAG 2.1 Level AA requirement (minimum 3.0:1 contrast ratio)."
+  },
+  "positive_test_cases": [
+    {
+      "foreground": "#999999",
+      "background": "#FFFFFF",
+      "font_size_pt": 18,
+      "expected_match": true,
+      "calculated_ratio": 2.84
+    }
+  ],
+  "negative_test_cases": [
+    {
+      "foreground": "#767676",
+      "background": "#FFFFFF",
+      "font_size_pt": 18,
+      "expected_match": false,
+      "calculated_ratio": 4.54
+    }
+  ],
+  "owner_approved": true,
+  "version": 1
+}
