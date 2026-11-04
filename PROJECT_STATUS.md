@@ -35,7 +35,7 @@ The project timeline is compressed from 5 days to **48 Hours (2 Days)**:
 | **Day 0** | **D0-10** | 30 adversarial prompt injection test cases (`eval/injection_30.jsonl`) | P1 | A5 | ✅ Complete | 30 injection vectors |
 | **Day 0** | **D0-11** | Engineering assumptions & ADR logs (ADR 001–007) | P0 | A0 | ✅ Complete | `docs/assumptions.md`, `docs/architecture_decisions.md` |
 | **Day 0** | **D0-12** | Python 3.15 Compatibility Investigation | P0 | A0 | ❌ Rejected | Failed on `pandas`/`streamlit` (lack of wheels) |
-| **Day 1** | **D1-01** | Python 3.11 environment setup & package installation | P0 | Team | ⏳ Pending Blocker | Awaiting Python 3.11 installer completion |
+| **Day 1** | **D1-01** | Python 3.11 environment setup & package installation | P0 | Team | ✅ Complete | Python 3.11.9 venv & wheels installed |
 | **Day 1** | **D1-02** | Database initialization & seed import (`db.py`, `seed.py`) | P0 | A1 | ⏳ Ready | Hours 0–4 |
 | **Day 1** | **D1-03** | Multi-format ingestion pipeline (`ingest/`) | P1 | A1 | ⏳ Ready | Hours 2–6 |
 | **Day 1** | **D1-04** | LLM Adapter core (`llm/adapter.py`, `mock.py`, `live.py`) | P0 | A3 | ⏳ Ready | Hours 2–8 |
@@ -62,9 +62,9 @@ The project timeline is compressed from 5 days to **48 Hours (2 Days)**:
 ---
 
 ## 4. Current Blockers & Technical Risks
-1. **Python 3.11 Interpreter Installation (Manual Action Required)**:
-   - Python 3.15 empirical test proved that `streamlit` and `Pillow` cannot install due to missing pre-compiled wheels for `pandas` on Windows.
-   - User must install official Python 3.11.9 (64-bit) with `"Add python.exe to PATH"` checked.
+1. **Python 3.11 Environment (RESOLVED)**:
+   - Fresh virtual environment `.venv` active with Python 3.11.9.
+   - All pinned binary wheels (Streamlit, PyMuPDF, Pillow, python-docx, pytest) installed and verified with zero compilation errors.
 2. **48-Hour Deadline Compression**:
    - Compressed timeframe requires absolute discipline: P0 features must take precedence over cosmetic UI flourishes.
    - Mock LLM mode guarantees that the entire demo scenario (*Monsoon Clear Skin*) runs instantaneously without risk of live API quota or network failures.
@@ -72,4 +72,4 @@ The project timeline is compressed from 5 days to **48 Hours (2 Days)**:
 ---
 
 ## 5. Next Recommended Action
-Awaiting user notification of Python 3.11 installation. Upon confirmation and opening of the Day 1 hackathon window, begin **Phase 1: Day 1 Core Implementation (Tasks D1-01 through D1-09)**.
+Awaiting user confirmation that official hackathon window is open to begin parallel execution of **Day 1: Tasks D1-02 (Database/Seeds), D1-03 (Ingestion), and D1-04 (Mock LLM Adapter)**.
