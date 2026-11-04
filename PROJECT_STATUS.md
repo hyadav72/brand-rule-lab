@@ -35,7 +35,7 @@ The project timeline is compressed from 5 days to **48 Hours (2 Days)**:
 | **Day 0** | **D0-10** | 30 adversarial prompt injection test cases (`eval/injection_30.jsonl`) | P1 | A5 | ✅ Complete | 30 injection vectors |
 | **Day 0** | **D0-11** | Engineering assumptions & ADR logs (ADR 001–007) | P0 | A0 | ✅ Complete | `docs/assumptions.md`, `docs/architecture_decisions.md` |
 | **Day 0** | **D0-12** | Python 3.15 Compatibility Investigation | P0 | A0 | ❌ Rejected | Failed on `pandas`/`streamlit` (lack of wheels) |
-| **Day 1** | **D1-01** | Python 3.11 environment setup & package installation | P0 | Team | ✅ Complete | Python 3.11.9 venv & wheels installed |
+| **Day 1** | **D1-01** | Python 3.11 environment setup & package installation | P0 | Team | ✅ Complete | Verified: `tests/test_environment_smoke.py` (6/6 pytest passed) |
 | **Day 1** | **D1-02** | Database initialization & seed import (`db.py`, `seed.py`) | P0 | A1 | ⏳ Ready | Hours 0–4 |
 | **Day 1** | **D1-03** | Multi-format ingestion pipeline (`ingest/`) | P1 | A1 | ⏳ Ready | Hours 2–6 |
 | **Day 1** | **D1-04** | LLM Adapter core (`llm/adapter.py`, `mock.py`, `live.py`) | P0 | A3 | ⏳ Ready | Hours 2–8 |
