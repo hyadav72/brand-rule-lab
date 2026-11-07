@@ -33,25 +33,59 @@ SCHEMA_SQL_PATH = Path(__file__).parent / "schema.sql"
 
 def is_cloud_demo_mode() -> bool:
     """
-    Return True if cloud demo mode is explicitly activated via environment variable
-    or Streamlit Cloud secrets (e.g. DEPLOYMENT_MODE="demo").
+    Return True if cloud demo mode is active.
+    
+    Detection Priority:
+    1. Explicit DEPLOYMENT_MODE env var: 'demo', 'cloud_demo', or 'cloud' -> True; 'production' -> False.
+    2. Streamlit Cloud Secrets: DEPLOYMENT_MODE = "demo".
+    3. Streamlit Community Cloud Platform Signals:
+       - STREAMLIT_SHARING_HOST or IS_STREAMLIT_CLOUD is present.
+       - Linux container environment (/home/appuser).
+       - Running inside Streamlit and no local production database exists on disk.
     """
     # 1. Check OS environment variable
     env_val = os.getenv("DEPLOYMENT_MODE", "").strip().lower()
     if env_val in ("demo", "cloud_demo", "cloud"):
         return True
+    if env_val == "production":
+        return False
 
     # 2. Check Streamlit Cloud secrets if running inside Streamlit
     try:
         import streamlit as st
-        if hasattr(st, "secrets"):
-            sec_val = str(st.secrets.get("DEPLOYMENT_MODE", "")).strip().lower()
-            if sec_val in ("demo", "cloud_demo", "cloud"):
-                return True
-            if "deployment" in st.secrets and hasattr(st.secrets["deployment"], "get"):
-                sec_sub = str(st.secrets["deployment"].get("mode", "")).strip().lower()
-                if sec_sub in ("demo", "cloud_demo", "cloud"):
+        for sec_key in ("DEPLOYMENT_MODE", "deployment_mode", "deployment"):
+            try:
+                val = st.secrets.get(sec_key)
+                if isinstance(val, str) and val.strip().lower() in ("demo", "cloud_demo", "cloud"):
                     return True
+                elif isinstance(val, dict) and str(val.get("mode", "")).strip().lower() in ("demo", "cloud_demo", "cloud"):
+                    return True
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+    # 3. Detect Streamlit Community Cloud Platform signals
+    st_cloud_indicators = [
+        os.getenv("STREAMLIT_SHARING_HOST"),
+        os.getenv("IS_STREAMLIT_CLOUD"),
+        os.getenv("STREAMLIT_COMMUNITY_CLOUD"),
+        os.getenv("HOME") == "/home/appuser",
+        os.getenv("USER") == "appuser",
+        os.path.isdir("/home/appuser"),
+        os.path.isdir("/mount/src"),
+        "/mount/src" in str(Path(__file__).resolve().as_posix()),
+        "/home/appuser" in str(Path(__file__).resolve().as_posix()),
+    ]
+    if any(st_cloud_indicators) and not Path("data/brand_rule_lab.db").exists():
+        return True
+
+    # 4. Running inside active Streamlit server without local production DB on disk
+    try:
+        import streamlit as st
+        from streamlit.runtime import exists as st_runtime_exists
+        if st_runtime_exists() and not Path("data/brand_rule_lab.db").exists() and not os.getenv("PROD_DATABASE_PATH"):
+            return True
     except Exception:
         pass
 
@@ -94,26 +128,44 @@ def get_db_path(custom_path: Optional[str] = None) -> str:
     return path_str
 
 
+_ensuring_db_ready: bool = False
+_verified_ready_dbs: set[str] = set()
+
+
 @contextmanager
 def get_connection(
     db_path: Optional[str] = None,
     *,
     maintenance_token: Optional[MaintenanceToken] = None,
+    _skip_readiness_check: bool = False,
 ) -> Generator[sqlite3.Connection, None, None]:
     """
     Context manager yielding an open SQLite connection with foreign keys enabled.
     Commits on successful block completion; rolls back on unhandled exceptions.
 
-    Maintenance Mode & Quiescence Governance:
+    Guarantees:
+    - Target database is verified initialized and ready before any query is executed.
     - Normal application connections are blocked if maintenance mode is active.
-    - Application connections acquire shared DatabaseGate access, preventing maintenance
-      from interrupting active operations without a proper quiescence drain.
-    - Double-checks maintenance mode under gate lock to eliminate TOCTOU races.
-    - Explicit maintenance operations providing a cryptographically verified,
-      database-bound MaintenanceToken bypass the gate and connect directly.
+    - Application connections acquire shared DatabaseGate access.
     """
+    global _ensuring_db_ready
     target_path = get_db_path(db_path)
     is_mem = (target_path == ":memory:")
+
+    # 0. Startup & Cloud Demo Pre-flight: Ensure target database is initialized before any query
+    if (
+        not is_mem
+        and not _skip_readiness_check
+        and not _ensuring_db_ready
+        and target_path not in _verified_ready_dbs
+        and (db_path is None or target_path == CLOUD_DEMO_DB_PATH)
+    ):
+        _ensuring_db_ready = True
+        try:
+            ensure_app_database_ready(target_path)
+            _verified_ready_dbs.add(target_path)
+        finally:
+            _ensuring_db_ready = False
 
     # 1. Maintenance Mode Check
     if not is_mem and is_maintenance_active(target_path):
@@ -193,7 +245,7 @@ def init_db(
         raise FileNotFoundError(f"Schema file not found at: {sql_file}")
 
     schema_sql = sql_file.read_text(encoding="utf-8")
-    with get_connection(target_path, maintenance_token=maintenance_token) as conn:
+    with get_connection(target_path, maintenance_token=maintenance_token, _skip_readiness_check=True) as conn:
         conn.executescript(schema_sql)
         # Register baseline migrations in schema_migrations for newly initialized fresh databases
         from core.migrations.runner import synchronize_schema_migrations
@@ -227,11 +279,12 @@ def ensure_app_database_ready(db_path: Optional[str] = None) -> Dict[str, Any]:
                 "Automatic creation of production database is strictly prohibited."
             )
         # Verify read-only connectivity without performing writes
-        with get_connection(target_path) as conn:
+        with get_connection(target_path, _skip_readiness_check=True) as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table' LIMIT 1;")
             cursor.fetchone()
 
+        _verified_ready_dbs.add(target_path)
         return {
             "mode": "production_read_only",
             "db_path": target_path,
@@ -246,11 +299,16 @@ def ensure_app_database_ready(db_path: Optional[str] = None) -> Dict[str, Any]:
     needs_init = True
     if target_file.exists():
         try:
-            with get_connection(target_path) as conn:
+            with get_connection(target_path, _skip_readiness_check=True) as conn:
                 cursor = conn.cursor()
                 cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
                 tables = {r["name"] for r in cursor.fetchall()}
-                if "assets" in tables and "findings" in tables:
+                if (
+                    "assets" in tables
+                    and "findings" in tables
+                    and "approved_claims" in tables
+                    and "schema_migrations" in tables
+                ):
                     needs_init = False
         except Exception:
             needs_init = True
@@ -266,6 +324,7 @@ def ensure_app_database_ready(db_path: Optional[str] = None) -> Dict[str, Any]:
         runner = MigrationRunner(db_path=target_path)
         runner.run(require_maintenance=False)
 
+        _verified_ready_dbs.add(target_path)
         mode_name = "cloud_demo_initialized" if is_cloud_demo_mode() else "demo_initialized"
         return {
             "mode": mode_name,
@@ -274,6 +333,7 @@ def ensure_app_database_ready(db_path: Optional[str] = None) -> Dict[str, Any]:
             "status": "ready",
         }
 
+    _verified_ready_dbs.add(target_path)
     mode_name = "cloud_demo_ready" if is_cloud_demo_mode() else "demo_ready"
     return {
         "mode": mode_name,

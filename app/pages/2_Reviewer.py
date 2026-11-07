@@ -26,6 +26,18 @@ from core.models import AssetStatus, Decision, Finding, FindingKind, LinkState, 
 
 apply_theme()
 render_banner()
+
+# Database readiness check
+try:
+    from core.db import ensure_app_database_ready
+    ensure_app_database_ready()
+except Exception as e:
+    st.error(
+        f"🚨 **Database Startup Initialization Failure:** {e}\n\n"
+        "Application startup halted to prevent execution on an uninitialized or corrupt database."
+    )
+    st.stop()
+
 current_role = render_sidebar_role_switcher()
 is_reviewer = (current_role == "reviewer")
 

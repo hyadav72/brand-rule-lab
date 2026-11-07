@@ -33,22 +33,21 @@ st.set_page_config(
 apply_theme()
 render_banner()
 
+# Startup database readiness check and permanent protection
+try:
+    from core.db import ensure_app_database_ready
+    db_status = ensure_app_database_ready()
+    st.session_state["db_initialized"] = True
+    st.session_state["db_status"] = db_status
+except Exception as e:
+    st.error(
+        f"🚨 **Database Startup Initialization Failure:** {e}\n\n"
+        "Application startup halted to prevent execution on an uninitialized or corrupt database."
+    )
+    st.stop()
+
 # Global Sidebar Persona Switcher & Environment Info
 current_role = render_sidebar_role_switcher()
-
-# Startup database readiness check and permanent protection
-if "db_initialized" not in st.session_state:
-    try:
-        from core.db import ensure_app_database_ready
-        db_status = ensure_app_database_ready()
-        st.session_state["db_initialized"] = True
-        st.session_state["db_status"] = db_status
-    except Exception as e:
-        st.error(
-            f"🚨 **Database Startup Initialization Failure:** {e}\n\n"
-            "Application startup halted to prevent execution on an uninitialized or corrupt database."
-        )
-        st.stop()
 
 # Main Landing Header
 st.markdown('<div class="eyebrow">ENTERPRISE GOVERNANCE & CLAIM LEDGER</div>', unsafe_allow_html=True)

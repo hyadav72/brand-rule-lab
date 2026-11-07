@@ -20,6 +20,18 @@ from core.models import DriftStatus, Role
 
 apply_theme()
 render_banner()
+
+# Database readiness check
+try:
+    from core.db import ensure_app_database_ready
+    ensure_app_database_ready()
+except Exception as e:
+    st.error(
+        f"🚨 **Database Startup Initialization Failure:** {e}\n\n"
+        "Application startup halted to prevent execution on an uninitialized or corrupt database."
+    )
+    st.stop()
+
 current_role = render_sidebar_role_switcher()
 is_fact_owner = (current_role == "fact_owner")
 

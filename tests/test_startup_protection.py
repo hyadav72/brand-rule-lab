@@ -288,6 +288,32 @@ def test_cloud_demo_mode_streamlit_secrets_activation(monkeypatch):
     assert is_production_database() is False
 
 
+def test_cloud_demo_mode_platform_signal_activation(monkeypatch):
+    """Cloud demo mode activates automatically when Streamlit Cloud platform signals are detected."""
+    from core.db import is_cloud_demo_mode, get_db_path, CLOUD_DEMO_DB_PATH
+
+    monkeypatch.delenv("DEPLOYMENT_MODE", raising=False)
+    monkeypatch.delenv("DATABASE_PATH", raising=False)
+    monkeypatch.setenv("IS_STREAMLIT_CLOUD", "1")
+
+    # When production DB doesn't exist (simulated via mock), it activates
+    monkeypatch.setattr(Path, "exists", lambda self: False)
+    assert is_cloud_demo_mode() is True
+    assert get_db_path() == CLOUD_DEMO_DB_PATH
+
+
+def test_explicit_production_mode_overrides_platform_signals(monkeypatch):
+    """Explicit DEPLOYMENT_MODE='production' strictly enforces production protections even in cloud."""
+    from core.db import is_cloud_demo_mode, get_db_path
+
+    monkeypatch.delenv("DATABASE_PATH", raising=False)
+    monkeypatch.setenv("DEPLOYMENT_MODE", "production")
+    monkeypatch.setenv("IS_STREAMLIT_CLOUD", "1")
+
+    assert is_cloud_demo_mode() is False
+    assert get_db_path() == "data/brand_rule_lab.db"
+
+
 def test_production_protections_remain_enforced_when_demo_mode_unset(tmp_path, monkeypatch):
     """When DEPLOYMENT_MODE is unset or production, production protections remain absolute."""
     from core.db import is_cloud_demo_mode, get_db_path, ensure_app_database_ready

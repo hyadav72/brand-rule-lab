@@ -28,7 +28,15 @@ def get_llm_adapter(mode: str | None = None, provider: str | None = None) -> LLM
     mode='dual', or explicit provider override.
     """
     global _active_adapter, _active_mode
-    requested_mode = (mode or os.getenv("LLM_MODE", "mock")).lower().strip()
+    mode_from_secrets = None
+    try:
+        import streamlit as st
+        if hasattr(st, "secrets") and "LLM_MODE" in st.secrets:
+            mode_from_secrets = str(st.secrets["LLM_MODE"]).strip().lower()
+    except Exception:
+        pass
+
+    requested_mode = (mode or mode_from_secrets or os.getenv("LLM_MODE", "mock")).lower().strip()
 
     if _active_adapter is not None and _active_mode == requested_mode and mode is None and provider is None:
         return _active_adapter
