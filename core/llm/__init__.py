@@ -30,9 +30,20 @@ def get_llm_adapter(mode: str | None = None, provider: str | None = None) -> LLM
     global _active_adapter, _active_mode
     mode_from_secrets = None
     try:
+        from pathlib import Path
         import streamlit as st
-        if hasattr(st, "secrets") and "LLM_MODE" in st.secrets:
-            mode_from_secrets = str(st.secrets["LLM_MODE"]).strip().lower()
+        secrets_obj = getattr(st, "secrets", None)
+        has_secrets = (
+            secrets_obj is not None
+            and (
+                isinstance(secrets_obj, dict)
+                or Path(".streamlit/secrets.toml").exists()
+                or Path.home().joinpath(".streamlit/secrets.toml").exists()
+                or bool(os.getenv("STREAMLIT_SECRETS"))
+            )
+        )
+        if has_secrets and "LLM_MODE" in secrets_obj:
+            mode_from_secrets = str(secrets_obj["LLM_MODE"]).strip().lower()
     except Exception:
         pass
 

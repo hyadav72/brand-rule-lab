@@ -54,7 +54,7 @@ st.markdown('<div class="eyebrow">ENTERPRISE GOVERNANCE & CLAIM LEDGER</div>', u
 st.title("Brand Rule Lab")
 st.markdown(
     """
-    <p style="font-size: 1.1rem; color: #A1A1AA; margin-top: -0.5rem; margin-bottom: 1.5rem;">
+    <p style="font-size: 1.1rem; color: var(--text-secondary); margin-top: -0.5rem; margin-bottom: 1.5rem;">
         Pre-Publication Brand Compliance Platform with Immutable Claim-to-Fact Lineage Ledger.
     </p>
     """,
@@ -64,12 +64,12 @@ st.markdown(
 # Core Architecture Philosophy Hero Card
 st.markdown(
     """
-    <div class="brand-card" style="border-left: 4px solid #C6F432;">
+    <div class="brand-card" style="border-left: 4px solid var(--accent);">
         <div class="eyebrow">CORE ARCHITECTURAL PHILOSOPHY</div>
-        <h3 style="margin-top: 0.2rem; color: #FFFFFF; font-size: 1.45rem;">
-            AI proposes. Python decides. <span style="color: #C6F432;">Humans approve.</span>
+        <h3 style="margin-top: 0.2rem; color: var(--text-primary); font-size: 1.45rem;">
+            AI proposes. Python decides. <span style="color: var(--accent-text);">Humans approve.</span>
         </h3>
-        <p style="margin-bottom: 0; color: #D4D4D8; line-height: 1.65; font-size: 0.95rem;">
+        <p style="margin-bottom: 0; color: var(--text-secondary); line-height: 1.65; font-size: 0.95rem;">
             Generative LLMs excel at span extraction and linguistic rewrite proposals, but fail at deterministic compliance verification. 
             Brand Rule Lab enforces strict separation of concerns: LLMs propose candidate findings and rewrites, 
             pure-Python predicates execute auditable pass/fail compliance decisions, and authorized humans approve verified claims into an immutable ledger.
@@ -125,16 +125,16 @@ with st.container():
     with p_col1:
         st.markdown(
             f"""
-            <div class="brand-card" style="padding: 1.1rem;">
+            <div class="brand-card" style="padding: 1.1rem; min-height: 185px; height: 100%;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <span class="eyebrow">PRIMARY PROVIDER</span>
                     {gemini_badge}
                 </div>
-                <h4 style="margin: 0.3rem 0; color: #FFFFFF;">Google Gemini</h4>
-                <p style="font-size: 0.82rem; color: #A1A1AA; margin-bottom: 0.5rem;">
+                <h4 style="margin: 0.3rem 0; color: var(--text-primary);">Google Gemini</h4>
+                <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
                     REST API (v1beta) &bull; <code>{gemini_model}</code>
                 </p>
-                <div style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:#A1A1AA;">
+                <div style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:var(--text-muted);">
                     {gemini_sub}
                 </div>
             </div>
@@ -145,16 +145,16 @@ with st.container():
     with p_col2:
         st.markdown(
             f"""
-            <div class="brand-card" style="padding: 1.1rem;">
+            <div class="brand-card" style="padding: 1.1rem; min-height: 185px; height: 100%;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <span class="eyebrow">SECONDARY PROVIDER</span>
                     {nvidia_badge}
                 </div>
-                <h4 style="margin: 0.3rem 0; color: #FFFFFF;">NVIDIA NIM</h4>
-                <p style="font-size: 0.82rem; color: #A1A1AA; margin-bottom: 0.5rem;">
+                <h4 style="margin: 0.3rem 0; color: var(--text-primary);">NVIDIA NIM</h4>
+                <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
                     OpenAI Compatible API &bull; <code>{nvidia_model}</code>
                 </p>
-                <div style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:#A1A1AA;">
+                <div style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:var(--text-muted);">
                     {nvidia_sub}
                 </div>
             </div>
@@ -165,16 +165,16 @@ with st.container():
     with p_col3:
         st.markdown(
             f"""
-            <div class="brand-card" style="padding: 1.1rem;">
+            <div class="brand-card" style="padding: 1.1rem; min-height: 185px; height: 100%;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <span class="eyebrow">FALLBACK PROVIDER</span>
                     {mock_badge}
                 </div>
-                <h4 style="margin: 0.3rem 0; color: #FFFFFF;">Deterministic Mock</h4>
-                <p style="font-size: 0.82rem; color: #A1A1AA; margin-bottom: 0.5rem;">
+                <h4 style="margin: 0.3rem 0; color: var(--text-primary);">Deterministic Mock</h4>
+                <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
                     In-Memory Python &bull; <code>100% Offline Reproducible</code>
                 </p>
-                <div style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:#C6F432 if '{mock_badge}'.find('ACTIVE') != -1 else '#34D399';">
+                <div style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:var(--accent-text);">
                     {mock_sub}
                 </div>
             </div>
@@ -191,10 +191,10 @@ col1, col2, col3, col4 = st.columns(4)
 with col1:
     st.markdown(
         """
-        <div class="brand-card" style="text-align: center; height: 180px;">
+        <div class="brand-card" style="text-align: center; min-height: 200px; height: 100%;">
             <div class="eyebrow">STAGE 1</div>
-            <h4 style="color: #FFFFFF; margin-top: 0.2rem;">✍️ Creator</h4>
-            <p style="font-size: 0.85rem; color: #A1A1AA;">Upload drafts (PDF, DOCX, TXT, Images), inspect findings, and accept compliant rewrites.</p>
+            <h4 style="color: var(--text-primary); margin-top: 0.2rem;">✍️ Creator</h4>
+            <p style="font-size: 0.85rem; color: var(--text-secondary);">Upload drafts (PDF, DOCX, TXT, Images), inspect findings, and accept compliant rewrites.</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -205,10 +205,10 @@ with col1:
 with col2:
     st.markdown(
         """
-        <div class="brand-card" style="text-align: center; height: 180px;">
+        <div class="brand-card" style="text-align: center; min-height: 200px; height: 100%;">
             <div class="eyebrow">STAGE 2</div>
-            <h4 style="color: #FFFFFF; margin-top: 0.2rem;">🔍 Reviewer</h4>
-            <p style="font-size: 0.85rem; color: #A1A1AA;">Approve compliant assets, inspect lineage (<code>SC-xxxx → Fact vX</code>), or log explicit overrides.</p>
+            <h4 style="color: var(--text-primary); margin-top: 0.2rem;">🔍 Reviewer</h4>
+            <p style="font-size: 0.85rem; color: var(--text-secondary);">Approve compliant assets, inspect lineage (<code>SC-xxxx → Fact vX</code>), or log explicit overrides.</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -219,10 +219,10 @@ with col2:
 with col3:
     st.markdown(
         """
-        <div class="brand-card" style="text-align: center; height: 180px;">
+        <div class="brand-card" style="text-align: center; min-height: 200px; height: 100%;">
             <div class="eyebrow">STAGE 3</div>
-            <h4 style="color: #FFFFFF; margin-top: 0.2rem;">🧪 Fact Owner</h4>
-            <p style="font-size: 0.85rem; color: #A1A1AA;">Publish approved facts with 0 LLM calls and 1 SQL update. Propagate drift cascades live.</p>
+            <h4 style="color: var(--text-primary); margin-top: 0.2rem;">🧪 Fact Owner</h4>
+            <p style="font-size: 0.85rem; color: var(--text-secondary);">Publish approved facts with 0 LLM calls and 1 SQL update. Propagate drift cascades live.</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -233,10 +233,10 @@ with col3:
 with col4:
     st.markdown(
         """
-        <div class="brand-card" style="text-align: center; height: 180px;">
+        <div class="brand-card" style="text-align: center; min-height: 200px; height: 100%;">
             <div class="eyebrow">VERIFICATION</div>
-            <h4 style="color: #FFFFFF; margin-top: 0.2rem;">📋 Rule Tests</h4>
-            <p style="font-size: 0.85rem; color: #A1A1AA;">Execute positive and negative test cases live across all rules for hackathon judges.</p>
+            <h4 style="color: var(--text-primary); margin-top: 0.2rem;">📋 Rule Tests</h4>
+            <p style="font-size: 0.85rem; color: var(--text-secondary);">Execute positive and negative test cases live across all rules for hackathon judges.</p>
         </div>
         """,
         unsafe_allow_html=True,

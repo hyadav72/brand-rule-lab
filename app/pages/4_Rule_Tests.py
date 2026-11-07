@@ -81,18 +81,18 @@ for r in filtered_results:
 
     st.markdown(
         f"""
-        <div class="brand-card" style="padding: 1rem 1.25rem; margin-bottom: 0.6rem; border-left: 4px solid {'#C6F432' if is_pass else '#EF4444'};">
+        <div class="brand-card" style="padding: 1rem 1.25rem; margin-bottom: 0.6rem; border-left: 4px solid {'var(--accent)' if is_pass else '#EF4444'};">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div>
-                    <strong style="color:#FFFFFF;">Rule: <code class="mono-id">{r['rule_id']}</code></strong> &bull; {type_badge}
+                    <strong style="color:var(--text-primary);">Rule: <code class="mono-id">{r['rule_id']}</code></strong> &bull; {type_badge}
                 </div>
                 <div>{badge}</div>
             </div>
-            <div style="font-size:0.9rem; margin-top:0.4rem; color:#E4E4E7;">
-                <strong style="color:#FFFFFF;">Input:</strong> <code class="mono-id">"{r['input']}"</code>
+            <div style="font-size:0.9rem; margin-top:0.4rem; color:var(--text-primary);">
+                <strong style="color:var(--text-primary);">Input:</strong> <code class="mono-id">"{r['input']}"</code>
             </div>
-            <div style="font-size:0.8rem; color:#A1A1AA; margin-top:0.3rem;">
-                Expected: <em>{r['expected']}</em> &bull; Actual: <em style="color:{'#C6F432' if is_pass else '#EF4444'};">{r['actual']}</em>
+            <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.3rem;">
+                Expected: <em>{r['expected']}</em> &bull; Actual: <em style="color:{'var(--accent-text)' if is_pass else '#EF4444'};">{r['actual']}</em>
             </div>
         </div>
         """,

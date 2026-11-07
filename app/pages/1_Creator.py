@@ -438,12 +438,12 @@ if st.session_state["active_doc"]:
                             <span class="badge-pill {'badge-changes' if f.severity == Severity.BLOCK else 'badge-ready'}">{f.severity.value.upper()}</span>
                         </div>
                     </div>
-                    <h4 style="margin: 0.4rem 0; color: #FFFFFF; font-size: 1.15rem;">"{f.source_text}"</h4>
-                    <p style="color: #D4D4D8; margin-bottom: 0.4rem; font-size: 0.92rem;">{f.message}</p>
-                    <div style="font-size: 0.85rem; color: #A1A1AA; margin-bottom: 0.3rem;">
-                        <strong style="color: #FFFFFF;">Provenance:</strong> {provenance}
+                    <h4 style="margin: 0.4rem 0; color: var(--text-primary); font-size: 1.15rem;">"{f.source_text}"</h4>
+                    <p style="color: var(--text-secondary); margin-bottom: 0.4rem; font-size: 0.92rem;">{f.message}</p>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.3rem;">
+                        <strong style="color: var(--text-primary);">Provenance:</strong> {provenance}
                     </div>
-                    <div style="font-size: 0.85rem; color: #C6F432; margin-bottom: 0.5rem;">
+                    <div style="font-size: 0.85rem; color: var(--accent-text); margin-bottom: 0.5rem;">
                         <strong>Next Step:</strong> {f.next_step}
                     </div>
                 </div>

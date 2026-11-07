@@ -52,16 +52,28 @@ def is_cloud_demo_mode() -> bool:
 
     # 2. Check Streamlit Cloud secrets if running inside Streamlit
     try:
+        from pathlib import Path
         import streamlit as st
-        for sec_key in ("DEPLOYMENT_MODE", "deployment_mode", "deployment"):
-            try:
-                val = st.secrets.get(sec_key)
-                if isinstance(val, str) and val.strip().lower() in ("demo", "cloud_demo", "cloud"):
-                    return True
-                elif isinstance(val, dict) and str(val.get("mode", "")).strip().lower() in ("demo", "cloud_demo", "cloud"):
-                    return True
-            except Exception:
-                pass
+        secrets_obj = getattr(st, "secrets", None)
+        has_secrets = (
+            secrets_obj is not None
+            and (
+                isinstance(secrets_obj, dict)
+                or Path(".streamlit/secrets.toml").exists()
+                or Path.home().joinpath(".streamlit/secrets.toml").exists()
+                or bool(os.getenv("STREAMLIT_SECRETS"))
+            )
+        )
+        if has_secrets:
+            for sec_key in ("DEPLOYMENT_MODE", "deployment_mode", "deployment"):
+                try:
+                    val = secrets_obj.get(sec_key)
+                    if isinstance(val, str) and val.strip().lower() in ("demo", "cloud_demo", "cloud"):
+                        return True
+                    elif isinstance(val, dict) and str(val.get("mode", "")).strip().lower() in ("demo", "cloud_demo", "cloud"):
+                        return True
+                except Exception:
+                    pass
     except Exception:
         pass
 

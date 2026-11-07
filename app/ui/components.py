@@ -202,7 +202,7 @@ def render_reviewer_queue_table(
 ) -> str:
     """Render compact HTML queue overview table with Asset, Findings, Status, Owner, and Age."""
     if not queue_data:
-        return '<div class="brand-card" style="text-align:center; padding: 1.5rem; color:#A1A1AA;">No assets awaiting review in queue.</div>'
+        return '<div class="brand-card" style="text-align:center; padding: 1.5rem; color:var(--text-secondary);">No assets awaiting review in queue.</div>'
 
     rows_html = []
     for item in queue_data:
@@ -215,32 +215,32 @@ def render_reviewer_queue_table(
 
         is_selected = (selected_asset_id == item.get("asset_id"))
         row_class = "selected-row" if is_selected else ""
-        row_style = "background-color: rgba(198, 244, 50, 0.08); font-weight: 600;" if is_selected else ""
-        selected_marker = ' <span style="color:#C6F432; font-weight:700;">👈 Active</span>' if is_selected else ""
+        row_style = "background-color: var(--nav-active-bg); font-weight: 600;" if is_selected else ""
+        selected_marker = ' <span style="color:var(--accent-text); font-weight:700;">👈 Active</span>' if is_selected else ""
 
         status_badge = render_status_badge(status)
 
         rows_html.append(
-            f'<tr class="{row_class}" style="border-bottom: 1px solid #27272A; {row_style}">'
-            f'<td style="padding: 10px 14px;"><strong style="color:#FFFFFF;">{name}</strong><br><code class="mono-id">{aid}</code>{selected_marker}</td>'
-            f'<td style="padding: 10px 14px; text-align: center;"><span style="font-size:1.15rem; font-weight:800; color:#C6F432;">{f_cnt}</span></td>'
+            f'<tr class="{row_class}" style="border-bottom: 1px solid var(--border-subtle); {row_style}">'
+            f'<td style="padding: 10px 14px;"><strong style="color:var(--text-primary);">{name}</strong><br><code class="mono-id">{aid}</code>{selected_marker}</td>'
+            f'<td style="padding: 10px 14px; text-align: center;"><span style="font-size:1.15rem; font-weight:800; color:var(--accent-text);">{f_cnt}</span></td>'
             f'<td style="padding: 10px 14px;">{status_badge}</td>'
-            f'<td style="padding: 10px 14px; color:#D4D4D8;">{owner}</td>'
-            f'<td style="padding: 10px 14px; font-family:\'JetBrains Mono\',monospace; font-size:0.82rem; color:#A1A1AA;">{age}</td>'
+            f'<td style="padding: 10px 14px; color:var(--text-secondary);">{owner}</td>'
+            f'<td style="padding: 10px 14px; font-family:\'JetBrains Mono\',monospace; font-size:0.82rem; color:var(--text-muted);">{age}</td>'
             f'</tr>'
         )
 
     tbody = "".join(rows_html)
     return (
-        f'<div class="brand-card" style="padding: 0; overflow-x: auto; margin-bottom: 1rem; border: 1px solid #27272A; border-radius: 14px;">'
+        f'<div class="brand-card" style="padding: 0; overflow-x: auto; margin-bottom: 1rem; border: 1px solid var(--border-subtle); border-radius: 14px; background: var(--bg-card);">'
         f'<table class="queue-table" style="width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: left;">'
         f'<thead>'
-        f'<tr style="background: #1C1C20; border-bottom: 2px solid #27272A;">'
-        f'<th style="padding: 12px 14px; font-family:\'JetBrains Mono\',monospace; font-size:0.72rem; text-transform:uppercase; color:#C6F432; letter-spacing:0.08em;">Asset</th>'
-        f'<th style="padding: 12px 14px; font-family:\'JetBrains Mono\',monospace; font-size:0.72rem; text-transform:uppercase; color:#C6F432; letter-spacing:0.08em; text-align:center;">Findings</th>'
-        f'<th style="padding: 12px 14px; font-family:\'JetBrains Mono\',monospace; font-size:0.72rem; text-transform:uppercase; color:#C6F432; letter-spacing:0.08em;">Status</th>'
-        f'<th style="padding: 12px 14px; font-family:\'JetBrains Mono\',monospace; font-size:0.72rem; text-transform:uppercase; color:#C6F432; letter-spacing:0.08em;">Owner</th>'
-        f'<th style="padding: 12px 14px; font-family:\'JetBrains Mono\',monospace; font-size:0.72rem; text-transform:uppercase; color:#C6F432; letter-spacing:0.08em;">Age</th>'
+        f'<tr style="background: var(--table-header-bg); border-bottom: 2px solid var(--border-subtle);">'
+        f'<th style="padding: 12px 14px; font-family:\'JetBrains Mono\',monospace; font-size:0.72rem; text-transform:uppercase; color:var(--accent-text); letter-spacing:0.08em;">Asset</th>'
+        f'<th style="padding: 12px 14px; font-family:\'JetBrains Mono\',monospace; font-size:0.72rem; text-transform:uppercase; color:var(--accent-text); letter-spacing:0.08em; text-align:center;">Findings</th>'
+        f'<th style="padding: 12px 14px; font-family:\'JetBrains Mono\',monospace; font-size:0.72rem; text-transform:uppercase; color:var(--accent-text); letter-spacing:0.08em;">Status</th>'
+        f'<th style="padding: 12px 14px; font-family:\'JetBrains Mono\',monospace; font-size:0.72rem; text-transform:uppercase; color:var(--accent-text); letter-spacing:0.08em;">Owner</th>'
+        f'<th style="padding: 12px 14px; font-family:\'JetBrains Mono\',monospace; font-size:0.72rem; text-transform:uppercase; color:var(--accent-text); letter-spacing:0.08em;">Age</th>'
         f'</tr>'
         f'</thead>'
         f'<tbody>{tbody}</tbody>'
@@ -339,8 +339,8 @@ def render_annotated_draft(text: str, findings: Optional[List[Any]]) -> str:
             badges = []
             for ef in sorted(ending, key=lambda x: x["idx"]):
                 badges.append(
-                    f'<sup style="background:#0B0B0C; color:#C6F432; font-weight:800; border:1px solid #C6F432; padding:1px 6px; border-radius:10px; font-size:0.68rem; margin-left:3px; font-family:\'JetBrains Mono\',monospace;">'
-                    f'<a href="#card-{ef["finding_id"]}" style="color:#C6F432; text-decoration:none;" title="Click to view Finding #{ef["idx"]} ({ef["rule_or_fact"]})">{ef["idx"]}</a>'
+                    f'<sup style="background:var(--bg-canvas); color:var(--accent-text); font-weight:800; border:1px solid var(--accent); padding:1px 6px; border-radius:10px; font-size:0.68rem; margin-left:3px; font-family:\'JetBrains Mono\',monospace;">'
+                    f'<a href="#card-{ef["finding_id"]}" style="color:var(--accent-text); text-decoration:none;" title="Click to view Finding #{ef["idx"]} ({ef["rule_or_fact"]})">{ef["idx"]}</a>'
                     f'</sup>'
                 )
             badge_html = (" " + "".join(badges)) if badges else ""
@@ -354,7 +354,7 @@ def render_annotated_draft(text: str, findings: Optional[List[Any]]) -> str:
 
     rendered_body = "".join(html_out)
     return (
-        f'<div class="brand-card" style="font-size: 1.05rem; line-height: 1.7; white-space: pre-wrap; border-left: 4px solid #C6F432; background: #141416; color: #E4E4E7;">'
+        f'<div class="brand-card" style="font-size: 1.05rem; line-height: 1.7; white-space: pre-wrap; border-left: 4px solid var(--accent); background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-subtle);">'
         f'{rendered_body}'
         f'</div>'
     )
@@ -371,18 +371,18 @@ def render_audit_event_item(evt: ReviewEvent) -> str:
     ts_str = html.escape(str(evt.timestamp)[:19])
 
     override_text = f" &bull; <strong>Override:</strong> <em style='color:#F59E0B;'>{html.escape(str(evt.override_reason))}</em>" if evt.override_reason else ""
-    comment_text = f" &bull; <span style='color:#A1A1AA;'>{html.escape(str(evt.comment))}</span>" if evt.comment else ""
-    prov_badge = f" &bull; <span style='font-size:0.72rem; background:#1C1C20; color:#C6F432; border:1px solid #27272A; padding:2px 6px; border-radius:4px;'>{html.escape(str(evt.provenance))}</span>" if evt.provenance and evt.provenance != "USER_ACTION" else ""
-    hist_bound = f" &bull; <span style='font-size:0.72rem; color:#71717A;'>evidence: {html.escape(str(evt.known_before_timestamp)[:19])}</span>" if evt.known_before_timestamp else ""
+    comment_text = f" &bull; <span style='color:var(--text-secondary);'>{html.escape(str(evt.comment))}</span>" if evt.comment else ""
+    prov_badge = f" &bull; <span style='font-size:0.72rem; background:var(--bg-card-elevated); color:var(--accent-text); border:1px solid var(--border-subtle); padding:2px 6px; border-radius:4px;'>{html.escape(str(evt.provenance))}</span>" if evt.provenance and evt.provenance != "USER_ACTION" else ""
+    hist_bound = f" &bull; <span style='font-size:0.72rem; color:var(--text-muted);'>evidence: {html.escape(str(evt.known_before_timestamp)[:19])}</span>" if evt.known_before_timestamp else ""
 
     if evt.finding_id:
-        scope_badge = f" &bull; <span style='font-size:0.72rem; background:#1C1C20; color:#E4E4E7; border:1px solid #27272A; padding:2px 6px; border-radius:4px;'>Finding: {html.escape(str(evt.finding_id))}</span>"
+        scope_badge = f" &bull; <span style='font-size:0.72rem; background:var(--bg-card-elevated); color:var(--text-primary); border:1px solid var(--border-subtle); padding:2px 6px; border-radius:4px;'>Finding: {html.escape(str(evt.finding_id))}</span>"
     else:
-        scope_badge = " &bull; <span style='font-size:0.72rem; color:#A1A1AA; background:#18181B; border:1px solid #27272A; padding:2px 6px; border-radius:4px;'>Asset-level event</span>"
+        scope_badge = " &bull; <span style='font-size:0.72rem; color:var(--text-muted); background:var(--bg-card-elevated); border:1px solid var(--border-subtle); padding:2px 6px; border-radius:4px;'>Asset-level event</span>"
 
     return (
-        f'<div class="audit-event-item" style="font-family:\'JetBrains Mono\',monospace; font-size:0.82rem; padding: 6px 0; border-bottom: 1px solid #222226; color: #E4E4E7;">'
-        f'<strong>{ts_str}</strong> &bull; <code class="mono-id">{actor_str}</code> <span style="color:#A1A1AA;">({role_str})</span> &bull; '
-        f'<span style="color:#C6F432; font-weight:700;">{action_str}</span>{scope_badge}{comment_text}{override_text}{prov_badge}{hist_bound}'
+        f'<div class="audit-event-item" style="font-family:\'JetBrains Mono\',monospace; font-size:0.82rem; padding: 6px 0; border-bottom: 1px solid var(--border-subtle); color: var(--text-primary);">'
+        f'<strong>{ts_str}</strong> &bull; <code class="mono-id">{actor_str}</code> <span style="color:var(--text-muted);">({role_str})</span> &bull; '
+        f'<span style="color:var(--accent-text); font-weight:700;">{action_str}</span>{scope_badge}{comment_text}{override_text}{prov_badge}{hist_bound}'
         f'</div>'
     )

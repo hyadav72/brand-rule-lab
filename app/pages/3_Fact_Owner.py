@@ -128,11 +128,11 @@ with tab_facts:
             <div class="brand-card" style="border-left: 4px solid {card_border};">
                 <div style="display:flex; justify-content:space-between;">
                     <span class="eyebrow">{f['fact_id']} &bull; VERSION {f['version']}{exp_warning}</span>
-                    <span style="font-size:0.8rem; color:#A1A1AA;">Scope: <code class="mono-id">{f['product_id']}</code> ({f['market']})</span>
+                    <span style="font-size:0.8rem; color:var(--text-secondary);">Scope: <code class="mono-id">{f['product_id']}</code> ({f['market']})</span>
                 </div>
-                <h4 style="margin: 0.3rem 0; color:#FFFFFF;">{f['fact_text']}</h4>
-                <p style="font-size:0.9rem; margin-bottom:0.3rem; color:#D4D4D8;"><strong style="color:#FFFFFF;">Permitted Wording:</strong> <em style="color:#C6F432;">"{f['permitted_wording']}"</em></p>
-                <div style="font-size:0.8rem; color:#A1A1AA;">
+                <h4 style="margin: 0.3rem 0; color:var(--text-primary);">{f['fact_text']}</h4>
+                <p style="font-size:0.9rem; margin-bottom:0.3rem; color:var(--text-secondary);"><strong style="color:var(--text-primary);">Permitted Wording:</strong> <em style="color:var(--accent-text);">"{f['permitted_wording']}"</em></p>
+                <div style="font-size:0.8rem; color:var(--text-muted);">
                     Owner: <code class="mono-id">{f['owner']}</code> &bull; Valid: {f['valid_from']} to {f['expires_at'] or 'Perpetual'}
                 </div>
             </div>
@@ -163,8 +163,8 @@ with tab_ledger:
                         <span class="eyebrow">STABLE ID: <code class="mono-id">{cr['stable_claim_id']}</code> &bull; Tied to <code class="mono-id">{cr['fact_id']} v{cr['fact_version_id']}</code></span>
                         <span>{render_state_chip(cr['drift_status'])}</span>
                     </div>
-                    <h4 style="margin: 0.3rem 0; color:#FFFFFF;">"{cr['claim_text']}"</h4>
-                    <div style="font-size:0.8rem; color:#A1A1AA;">
+                    <h4 style="margin: 0.3rem 0; color:var(--text-primary);">"{cr['claim_text']}"</h4>
+                    <div style="font-size:0.8rem; color:var(--text-secondary);">
                         Asset: <code class="mono-id">{cr['asset_id']}</code> &bull; Approved by: {cr['approved_by']} ({cr['approved_at'][:10]}){flag_info}
                     </div>
                 </div>
