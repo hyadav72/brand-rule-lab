@@ -27,12 +27,60 @@ from core.maintenance import (
 load_dotenv()
 
 DEFAULT_DB_PATH = os.getenv("DATABASE_PATH", "data/brand_rule_lab.db")
+CLOUD_DEMO_DB_PATH = "data/cloud_demo.db"
 SCHEMA_SQL_PATH = Path(__file__).parent / "schema.sql"
 
 
+def is_cloud_demo_mode() -> bool:
+    """
+    Return True if cloud demo mode is explicitly activated via environment variable
+    or Streamlit Cloud secrets (e.g. DEPLOYMENT_MODE="demo").
+    """
+    # 1. Check OS environment variable
+    env_val = os.getenv("DEPLOYMENT_MODE", "").strip().lower()
+    if env_val in ("demo", "cloud_demo", "cloud"):
+        return True
+
+    # 2. Check Streamlit Cloud secrets if running inside Streamlit
+    try:
+        import streamlit as st
+        if hasattr(st, "secrets"):
+            sec_val = str(st.secrets.get("DEPLOYMENT_MODE", "")).strip().lower()
+            if sec_val in ("demo", "cloud_demo", "cloud"):
+                return True
+            if "deployment" in st.secrets and hasattr(st.secrets["deployment"], "get"):
+                sec_sub = str(st.secrets["deployment"].get("mode", "")).strip().lower()
+                if sec_sub in ("demo", "cloud_demo", "cloud"):
+                    return True
+    except Exception:
+        pass
+
+    return False
+
+
 def get_db_path(custom_path: Optional[str] = None) -> str:
-    """Return configured database path, ensuring directory exists."""
-    path_str = custom_path or os.getenv("DATABASE_PATH", "data/brand_rule_lab.db")
+    """
+    Return configured database path, ensuring directory exists.
+    
+    Governance Rules:
+    - In normal/production mode: Defaults to data/brand_rule_lab.db.
+    - In explicit cloud demo mode (DEPLOYMENT_MODE="demo"): Routes to data/cloud_demo.db.
+    - Strict isolation guard: Cloud demo mode is NEVER permitted to touch or resolve
+      to data/brand_rule_lab.db or data/demo_brand_rule_lab.db.
+    """
+    if is_cloud_demo_mode():
+        if custom_path:
+            path_str = custom_path
+        else:
+            path_str = os.getenv("DATABASE_PATH") or CLOUD_DEMO_DB_PATH
+
+        # Strict safety guard: Never allow cloud demo mode to touch production or clean baseline databases
+        raw_name = Path(path_str).name.lower()
+        if raw_name in ("brand_rule_lab.db", "demo_brand_rule_lab.db"):
+            path_str = CLOUD_DEMO_DB_PATH
+    else:
+        path_str = custom_path or os.getenv("DATABASE_PATH", "data/brand_rule_lab.db")
+
     if path_str != ":memory:":
         raw_path = path_str
         if raw_path.startswith("file:"):
@@ -218,15 +266,17 @@ def ensure_app_database_ready(db_path: Optional[str] = None) -> Dict[str, Any]:
         runner = MigrationRunner(db_path=target_path)
         runner.run(require_maintenance=False)
 
+        mode_name = "cloud_demo_initialized" if is_cloud_demo_mode() else "demo_initialized"
         return {
-            "mode": "demo_initialized",
+            "mode": mode_name,
             "db_path": target_path,
             "writes": True,
             "status": "ready",
         }
 
+    mode_name = "cloud_demo_ready" if is_cloud_demo_mode() else "demo_ready"
     return {
-        "mode": "demo_ready",
+        "mode": mode_name,
         "db_path": target_path,
         "writes": 0,
         "status": "ready",

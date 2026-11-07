@@ -227,7 +227,8 @@ def verify_exclusive_access(
 def is_production_database(db_path: Optional[str] = None) -> bool:
     """Return True if db_path resolves to the main protected production database."""
     if not db_path:
-        db_path = os.getenv("DATABASE_PATH", "data/brand_rule_lab.db")
+        from core.db import get_db_path
+        db_path = get_db_path()
 
     raw_path = str(db_path).strip()
     if raw_path.startswith("file:"):
@@ -249,7 +250,7 @@ def is_production_database(db_path: Optional[str] = None) -> bool:
 
         # 2. Never treat explicit demo, disposable, temporary, or test databases as production
         name_lower = Path(norm_target).name.lower()
-        if any(marker in name_lower for marker in ("demo", "disposable", "test", "tmp", "temp")):
+        if any(marker in name_lower for marker in ("demo", "disposable", "test", "tmp", "temp", "cloud")):
             return False
 
         # 3. Explicit production path environment variable

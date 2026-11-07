@@ -197,3 +197,110 @@ def test_startup_missing_production_database_fails_visibly(tmp_path, monkeypatch
 
     with pytest.raises(FileNotFoundError, match="Automatic creation of production database is strictly prohibited"):
         ensure_app_database_ready(str(missing_prod))
+
+
+# ============================================================================
+# CLOUD DEMO MODE SAFE STARTUP TESTS
+# ============================================================================
+
+def test_cloud_demo_mode_path_isolation(monkeypatch):
+    """When DEPLOYMENT_MODE='demo', app resolves to data/cloud_demo.db and never touches production."""
+    from core.db import is_cloud_demo_mode, get_db_path, CLOUD_DEMO_DB_PATH
+
+    monkeypatch.setenv("DEPLOYMENT_MODE", "demo")
+    monkeypatch.delenv("DATABASE_PATH", raising=False)
+
+    assert is_cloud_demo_mode() is True
+    assert get_db_path() == CLOUD_DEMO_DB_PATH
+    assert is_production_database() is False
+
+    # Strict isolation: attempts to set DATABASE_PATH to production or clean baseline in demo mode are overridden
+    monkeypatch.setenv("DATABASE_PATH", "data/brand_rule_lab.db")
+    assert get_db_path() == CLOUD_DEMO_DB_PATH
+    assert is_production_database(get_db_path()) is False
+
+    monkeypatch.setenv("DATABASE_PATH", "data/demo_brand_rule_lab.db")
+    assert get_db_path() == CLOUD_DEMO_DB_PATH
+    assert is_production_database(get_db_path()) is False
+
+
+def test_cloud_demo_mode_initialization_and_idempotency(tmp_path, monkeypatch):
+    """Cloud demo mode automatically and idempotently initializes the demo database with synthetic fixtures."""
+    from core.db import ensure_app_database_ready, get_connection
+
+    cloud_db = tmp_path / "cloud_demo.db"
+    assert not cloud_db.exists()
+
+    monkeypatch.setenv("DEPLOYMENT_MODE", "demo")
+    monkeypatch.setenv("DATABASE_PATH", str(cloud_db))
+
+    # 1. First run: initializes cloud demo database
+    status1 = ensure_app_database_ready(str(cloud_db))
+    assert status1["mode"] == "cloud_demo_initialized"
+    assert status1["writes"] is True
+    assert status1["status"] == "ready"
+    assert cloud_db.exists()
+
+    # Verify synthetic demo fixtures and migrations
+    with get_connection(str(cloud_db)) as conn:
+        c = conn.cursor()
+        c.execute("SELECT count(*) FROM products;")
+        assert c.fetchone()[0] == 3
+
+        c.execute("SELECT count(*) FROM fact_versions;")
+        assert c.fetchone()[0] == 12
+
+        c.execute("SELECT count(*) FROM assets;")
+        assert c.fetchone()[0] >= 3
+
+        c.execute("SELECT count(*) FROM findings;")
+        assert c.fetchone()[0] >= 11
+
+        c.execute("SELECT count(*) FROM schema_migrations;")
+        assert c.fetchone()[0] == 4
+
+    with open(cloud_db, "rb") as f:
+        hash_1 = hashlib.sha256(f.read()).hexdigest()
+
+    # 2. Second run: already initialized, operates idempotently without re-seeding
+    status2 = ensure_app_database_ready(str(cloud_db))
+    assert status2["mode"] == "cloud_demo_ready"
+    assert status2["writes"] == 0
+    assert status2["status"] == "ready"
+
+    with open(cloud_db, "rb") as f:
+        hash_2 = hashlib.sha256(f.read()).hexdigest()
+    assert hash_1 == hash_2, "Idempotent cloud demo startup must not mutate existing database!"
+
+
+def test_cloud_demo_mode_streamlit_secrets_activation(monkeypatch):
+    """Cloud demo mode activates via Streamlit Cloud secrets even when OS env var is unset."""
+    import streamlit as st
+    from core.db import is_cloud_demo_mode, get_db_path, CLOUD_DEMO_DB_PATH
+
+    monkeypatch.delenv("DEPLOYMENT_MODE", raising=False)
+    monkeypatch.delenv("DATABASE_PATH", raising=False)
+
+    # Simulate Streamlit Cloud secrets
+    monkeypatch.setattr(st, "secrets", {"DEPLOYMENT_MODE": "demo"})
+    assert is_cloud_demo_mode() is True
+    assert get_db_path() == CLOUD_DEMO_DB_PATH
+    assert is_production_database() is False
+
+
+def test_production_protections_remain_enforced_when_demo_mode_unset(tmp_path, monkeypatch):
+    """When DEPLOYMENT_MODE is unset or production, production protections remain absolute."""
+    from core.db import is_cloud_demo_mode, get_db_path, ensure_app_database_ready
+
+    monkeypatch.delenv("DEPLOYMENT_MODE", raising=False)
+    monkeypatch.delenv("DATABASE_PATH", raising=False)
+
+    assert is_cloud_demo_mode() is False
+    assert get_db_path() == "data/brand_rule_lab.db"
+    assert is_production_database() is True
+
+    # Missing production DB must still halt startup with FileNotFoundError
+    missing_prod = tmp_path / "brand_rule_lab.db"
+    monkeypatch.setenv("PROD_DATABASE_PATH", str(missing_prod))
+    with pytest.raises(FileNotFoundError, match="Automatic creation of production database is strictly prohibited"):
+        ensure_app_database_ready(str(missing_prod))
