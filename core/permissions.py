@@ -9,6 +9,12 @@ Enforces role permissions across system actions:
   CANNOT edit brand facts or publish unapproved claims.
 - Fact Owner: Creates/updates fact versions, runs drift propagation, resolves escalations.
   CANNOT approve marketing assets.
+
+NOTE ON DEMO PERSONA SIMULATION:
+In this Hackathon MVP, the UI persona switcher simulates role-based authorization boundaries
+to prove deterministic governance and least-privilege separation without deploying heavy enterprise SSO.
+It is an auditable demonstration harness, not cryptographic production authentication.
+All privileged operations strictly require an explicit role and reject missing/None roles.
 """
 
 from __future__ import annotations
@@ -18,6 +24,7 @@ from core.models import Role
 ROLE_PERMISSIONS: dict[Role, Set[str]] = {
     Role.CREATOR: {
         "upload_draft",
+        "analyze_draft",
         "accept_finding",
         "edit_finding",
         "dismiss_finding",
@@ -33,6 +40,7 @@ ROLE_PERMISSIONS: dict[Role, Set[str]] = {
     Role.FACT_OWNER: {
         "view_facts",
         "create_fact_version",
+        "publish_fact",
         "trigger_drift_cascade",
         "sweep_expiry",
         "resolve_escalation",
@@ -40,8 +48,10 @@ ROLE_PERMISSIONS: dict[Role, Set[str]] = {
 }
 
 
-def can_perform(role: Role | str, action: str) -> bool:
-    """Check if given role has authority for requested action."""
+def can_perform(role: Role | str | None, action: str) -> bool:
+    """Check if given role has authority for requested action. A missing role (None) never has authority."""
+    if role is None:
+        return False
     if isinstance(role, str):
         try:
             role = Role(role)
@@ -50,8 +60,13 @@ def can_perform(role: Role | str, action: str) -> bool:
     return action in ROLE_PERMISSIONS.get(role, set())
 
 
-def enforce_permission(role: Role | str, action: str) -> None:
-    """Raise PermissionError if role lacks permission for action."""
+def enforce_permission(role: Role | str | None, action: str) -> None:
+    """
+    Raise PermissionError if role lacks permission for action or if role is missing.
+    A missing role must never implicitly grant permissions.
+    """
+    if role is None:
+        raise PermissionError(f"Action '{action}' requires an explicit role; no role was provided (role cannot be None).")
     if not can_perform(role, action):
-        role_name = role.value if isinstance(role, Role) else role
+        role_name = role.value if isinstance(role, Role) else str(role)
         raise PermissionError(f"Role '{role_name}' is not permitted to execute action '{action}'.")

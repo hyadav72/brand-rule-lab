@@ -2,42 +2,42 @@
   "rule_id": "L-01",
   "predicate_type": "logo_hash",
   "scope": {
-    "product": "*",
-    "market": "*",
-    "channel": "*"
+    "product": "prod_monsoon",
+    "market": "US",
+    "channel": "banner"
   },
   "parameters": {
     "max_hamming_distance": 10,
     "hash_size": 8,
     "reference_logo_path": "data/demo_assets/monsoon_logo_ref.png",
-    "explanation": "Brand logo must perceptually match the registered vector/raster brand asset within a Hamming distance threshold of <= 10. Distortions, unapproved alterations, or unofficial color swaps fail compliance."
+    "explanation": "Pre-cropped brand logo asset must perceptually match the registered vector/raster brand asset within a Hamming distance threshold of <= 10. Limitation: strictly evaluates isolated/pre-cropped logo assets; unsegmented full-scene creatives require prior bounding-box localization."
   },
   "positive_test_cases": [
     {
       "candidate": "data/demo_assets/monsoon_logo_different.png",
       "reference": "data/demo_assets/monsoon_logo_ref.png",
-      "expected_match": true,
-      "description": "Completely different logo fails perceptual threshold"
+      "expected_match": false,
+      "description": "Completely different logo fails perceptual threshold (expected_match: false triggers BLOCK finding)"
     }
   ],
   "negative_test_cases": [
     {
       "candidate": "data/demo_assets/monsoon_logo_ref.png",
       "reference": "data/demo_assets/monsoon_logo_ref.png",
-      "expected_match": false,
-      "description": "Exact canonical reference logo match"
+      "expected_match": true,
+      "description": "Exact canonical reference logo matches approved asset (expected_match: true)"
     },
     {
       "candidate": "data/demo_assets/monsoon_logo_resized.png",
       "reference": "data/demo_assets/monsoon_logo_ref.png",
-      "expected_match": false,
-      "description": "Resized brand logo matches reference"
+      "expected_match": true,
+      "description": "Resized brand logo matches approved reference asset (expected_match: true)"
     },
     {
       "candidate": "data/demo_assets/monsoon_logo_altered.png",
       "reference": "data/demo_assets/monsoon_logo_ref.png",
-      "expected_match": false,
-      "description": "Slightly altered brand logo within tolerance threshold"
+      "expected_match": true,
+      "description": "Slightly altered brand logo within tolerance threshold matches reference asset (expected_match: true)"
     }
   ],
   "owner_approved": true,

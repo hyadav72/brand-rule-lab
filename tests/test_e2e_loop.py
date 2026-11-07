@@ -29,7 +29,7 @@ def clean_db(tmp_path):
     """Provide freshly seeded database for e2e workflow."""
     db_file = tmp_path / "e2e_brand_rule_lab.db"
     db_path = str(db_file)
-    seed_database(db_path)
+    seed_database(db_path, include_demo_assets=False)
     return db_path
 
 
@@ -98,6 +98,7 @@ def test_complete_hackathon_demo_scenario(clean_db):
         fact_id="F-112",
         fact_version_id=3,
         reviewer_id="Sarah Jenkins (Reviewer)",
+        role=Role.REVIEWER,
         db_path=clean_db,
     )
 
@@ -126,7 +127,7 @@ def test_complete_hackathon_demo_scenario(clean_db):
         )
 
     # 9. Execute fact-drift propagation (1 SQL update, 0 LLM calls)
-    flagged_rows = cascade_fact_update("F-112", 4, db_path=clean_db)
+    flagged_rows = cascade_fact_update("F-112", 4, role=Role.FACT_OWNER, db_path=clean_db)
     assert flagged_rows == 1, "Exactly 1 registered dependent claim must be flagged."
 
     # 10. The previously approved claim now has drift_status = REVIEW_REQUIRED
@@ -183,11 +184,12 @@ def test_expiry_sweep_flags_expired_facts(clean_db):
         fact_id="F-OFFER-01",
         fact_version_id=1,
         reviewer_id="Sarah Jenkins",
+        role=Role.REVIEWER,
         db_path=clean_db,
     )
 
     # Run sweep as of today (2026-11-05)
-    flagged = sweep_expiry("2026-11-05", db_path=clean_db)
+    flagged = sweep_expiry("2026-11-05", role=Role.FACT_OWNER, db_path=clean_db)
     assert flagged >= 1
 
     claim_row = execute_query(

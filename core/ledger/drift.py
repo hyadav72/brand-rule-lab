@@ -10,14 +10,24 @@ Implemented verbatim in transactions returning affected row counts.
 from __future__ import annotations
 from typing import Optional
 from core.db import get_connection
+from core.models import Role
+from core.permissions import enforce_permission
 
 
-def cascade_fact_update(fact_id: str, new_version: int, db_path: Optional[str] = None) -> int:
+def cascade_fact_update(
+    fact_id: str,
+    new_version: int,
+    role: Optional[Role | str] = None,
+    db_path: Optional[str] = None,
+) -> int:
     """
     Propagate fact version update across all approved dependent claims.
     Flags claims linked to older fact versions as REVIEW_REQUIRED.
     Zero LLM calls, Zero web crawls, exactly 1 SQL UPDATE.
+    Enforces that only Fact Owner role can trigger drift cascades.
+    Requires an explicit role; missing/None role is rejected.
     """
+    enforce_permission(role, "trigger_drift_cascade")
     query = """
     UPDATE approved_claims
     SET drift_status = 'REVIEW_REQUIRED', flagged_at = CURRENT_TIMESTAMP
@@ -29,11 +39,18 @@ def cascade_fact_update(fact_id: str, new_version: int, db_path: Optional[str] =
         return cursor.rowcount
 
 
-def sweep_expiry(today: str, db_path: Optional[str] = None) -> int:
+def sweep_expiry(
+    today: str,
+    role: Optional[Role | str] = None,
+    db_path: Optional[str] = None,
+) -> int:
     """
     Flag claims linked to expired facts as EXPIRED.
     Single SQL UPDATE query across all registered claims.
+    Enforces that only Fact Owner role can run expiry sweeps.
+    Requires an explicit role; missing/None role is rejected.
     """
+    enforce_permission(role, "sweep_expiry")
     query = """
     UPDATE approved_claims
     SET drift_status = 'EXPIRED', flagged_at = CURRENT_TIMESTAMP

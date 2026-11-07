@@ -7,11 +7,12 @@ Live verification dashboard for hackathon judges to inspect declarative rule tes
 
 from __future__ import annotations
 import streamlit as st
-from app.ui.theme import apply_theme, render_banner
+from app.ui.theme import apply_theme, render_banner, render_sidebar_role_switcher
 from core.rules.engine import RuleEngine
 
 apply_theme()
 render_banner()
+render_sidebar_role_switcher()
 
 st.title("📋 Deterministic Rule Test Runner")
 st.markdown('<div class="eyebrow">QUALITY GATES & AUDITABLE TEST PROOFS</div>', unsafe_allow_html=True)
@@ -63,23 +64,23 @@ st.markdown("#### Test Execution Breakdown")
 
 for r in filtered_results:
     is_pass = r["passed"]
-    badge = '<span class="badge-pill badge-approved">PASS</span>' if is_pass else '<span class="badge-pill badge-changes">FAIL</span>'
+    badge = '<span class="badge-pill badge-approved">PASS</span>' if is_pass else '<span class="badge-pill badge-escalated">FAIL</span>'
     type_badge = f'<span class="badge-pill badge-ready">{r["test_type"].upper()}</span>'
 
     st.markdown(
         f"""
-        <div class="brand-card" style="padding: 0.8rem 1.2rem; margin-bottom: 0.5rem; border-left: 4px solid {'#107C41' if is_pass else '#B4521A'};">
+        <div class="brand-card" style="padding: 1rem 1.25rem; margin-bottom: 0.6rem; border-left: 4px solid {'#C6F432' if is_pass else '#EF4444'};">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div>
-                    <strong>Rule: <code>{r['rule_id']}</code></strong> &bull; {type_badge}
+                    <strong style="color:#FFFFFF;">Rule: <code class="mono-id">{r['rule_id']}</code></strong> &bull; {type_badge}
                 </div>
                 <div>{badge}</div>
             </div>
-            <div style="font-size:0.9rem; margin-top:0.3rem;">
-                <strong>Input:</strong> <code>"{r['input']}"</code>
+            <div style="font-size:0.9rem; margin-top:0.4rem; color:#E4E4E7;">
+                <strong style="color:#FFFFFF;">Input:</strong> <code class="mono-id">"{r['input']}"</code>
             </div>
-            <div style="font-size:0.8rem; color:#555; margin-top:0.2rem;">
-                Expected: <em>{r['expected']}</em> &bull; Actual: <em>{r['actual']}</em>
+            <div style="font-size:0.8rem; color:#A1A1AA; margin-top:0.3rem;">
+                Expected: <em>{r['expected']}</em> &bull; Actual: <em style="color:{'#C6F432' if is_pass else '#EF4444'};">{r['actual']}</em>
             </div>
         </div>
         """,

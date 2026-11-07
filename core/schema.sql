@@ -3,6 +3,14 @@
 
 PRAGMA foreign_keys = ON;
 
+-- Schema Migration History
+CREATE TABLE IF NOT EXISTS schema_migrations (
+    version INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    checksum TEXT NOT NULL,
+    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Registered Products
 CREATE TABLE IF NOT EXISTS products (
     product_id TEXT PRIMARY KEY,
@@ -40,6 +48,7 @@ CREATE TABLE IF NOT EXISTS assets (
     text_content TEXT NOT NULL,
     planned_publish_date TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    review_cycle INTEGER NOT NULL DEFAULT 1,
     FOREIGN KEY (product_id) REFERENCES products(product_id)
 );
 
@@ -62,8 +71,13 @@ CREATE TABLE IF NOT EXISTS findings (
     creator_action TEXT NOT NULL DEFAULT 'pending' CHECK(creator_action IN ('pending', 'accepted', 'edited', 'dismissed')),
     dismiss_reason TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    review_cycle INTEGER NOT NULL DEFAULT 1,
     FOREIGN KEY (asset_id) REFERENCES assets(asset_id) ON DELETE CASCADE
 );
+
+-- Composite Unique Index on Findings ensuring uniqueness per asset, rule, span, and review cycle
+CREATE UNIQUE INDEX IF NOT EXISTS uq_findings_asset_rule_span_cycle
+ON findings(asset_id, rule_id, span_start, span_end, review_cycle);
 
 -- Immutable Claim Ledger (Approved Claims Linked to Specific Fact Versions)
 CREATE TABLE IF NOT EXISTS approved_claims (
@@ -91,8 +105,111 @@ CREATE TABLE IF NOT EXISTS review_events (
     comment TEXT,
     override_reason TEXT,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    finding_id TEXT,
+    previous_action TEXT,
+    new_action TEXT,
+    event_fingerprint TEXT,
+    provenance TEXT NOT NULL DEFAULT 'USER_ACTION',
+    known_before_timestamp TIMESTAMP,
     FOREIGN KEY (asset_id) REFERENCES assets(asset_id)
 );
+
+-- Indexes on review_events for deduplication and timeline queries
+CREATE INDEX IF NOT EXISTS idx_review_events_asset_fingerprint
+ON review_events(asset_id, event_fingerprint);
+
+CREATE INDEX IF NOT EXISTS idx_review_events_asset_timestamp
+ON review_events(asset_id, timestamp);
+
+-- Prevent Updates and Deletes on Append-Only Audit Table
+CREATE TRIGGER IF NOT EXISTS trg_prevent_review_events_update
+BEFORE UPDATE ON review_events
+BEGIN
+    SELECT RAISE(ABORT, 'Mutation forbidden: review_events table is append-only.');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_prevent_review_events_delete
+BEFORE DELETE ON review_events
+BEGIN
+    SELECT RAISE(ABORT, 'Deletion forbidden: review_events table is append-only.');
+END;
+
+-- Immutable Original Draft Snapshots (one row per asset, written once at first submission)
+-- Stores the unmodified original text for tamper-evident audit purposes.
+CREATE TABLE IF NOT EXISTS asset_original_snapshots (
+    snapshot_id TEXT PRIMARY KEY,         -- e.g. SNAP-<asset_id>
+    asset_id TEXT NOT NULL UNIQUE,        -- One snapshot per asset (enforced by UNIQUE)
+    original_text TEXT NOT NULL,
+    content_hash TEXT NOT NULL,           -- SHA-256 hex of original_text for integrity checking
+    captured_by TEXT NOT NULL,            -- Actor who triggered the first submission
+    captured_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (asset_id) REFERENCES assets(asset_id)
+);
+
+-- Prevent Updates and Deletes on the original snapshot table
+CREATE TRIGGER IF NOT EXISTS trg_prevent_snapshots_update
+BEFORE UPDATE ON asset_original_snapshots
+BEGIN
+    SELECT RAISE(ABORT, 'Mutation forbidden: asset_original_snapshots table is immutable.');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_prevent_snapshots_delete
+BEFORE DELETE ON asset_original_snapshots
+BEGIN
+    SELECT RAISE(ABORT, 'Deletion forbidden: asset_original_snapshots table is immutable.');
+END;
+
+-- Asset Submissions: Common topological parent resolving circular dependency
+CREATE TABLE IF NOT EXISTS asset_submissions (
+    submission_id TEXT PRIMARY KEY,           -- e.g. SUB-<asset_id>-C<cycle>
+    asset_id TEXT NOT NULL,
+    review_cycle INTEGER NOT NULL DEFAULT 1,
+    submitted_by TEXT NOT NULL,
+    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (asset_id) REFERENCES assets(asset_id) ON DELETE CASCADE,
+    UNIQUE (asset_id, review_cycle)
+);
+
+-- Prevent Updates and Deletes on Submissions
+CREATE TRIGGER IF NOT EXISTS trg_prevent_submissions_update
+BEFORE UPDATE ON asset_submissions
+BEGIN
+    SELECT RAISE(ABORT, 'Mutation forbidden: asset_submissions table is immutable.');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_prevent_submissions_delete
+BEFORE DELETE ON asset_submissions
+BEGIN
+    SELECT RAISE(ABORT, 'Deletion forbidden: asset_submissions table is immutable.');
+END;
+
+-- Asset Effective Snapshots: Immutable post-compliance text submitted by Creator
+CREATE TABLE IF NOT EXISTS asset_effective_snapshots (
+    snapshot_id TEXT PRIMARY KEY,             -- e.g. EFF-SNAP-<asset_id>-C<cycle>
+    submission_id TEXT NOT NULL UNIQUE,       -- Links to parent submission
+    asset_id TEXT NOT NULL,
+    review_cycle INTEGER NOT NULL DEFAULT 1,
+    effective_text TEXT NOT NULL,
+    content_hash TEXT NOT NULL,               -- SHA-256 hex of effective_text
+    captured_by TEXT NOT NULL,                -- Actor who submitted
+    captured_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (submission_id) REFERENCES asset_submissions(submission_id) ON DELETE RESTRICT,
+    FOREIGN KEY (asset_id) REFERENCES assets(asset_id) ON DELETE CASCADE,
+    UNIQUE (asset_id, review_cycle)
+);
+
+-- Prevent Updates and Deletes on Effective Snapshots
+CREATE TRIGGER IF NOT EXISTS trg_prevent_effective_snapshots_update
+BEFORE UPDATE ON asset_effective_snapshots
+BEGIN
+    SELECT RAISE(ABORT, 'Mutation forbidden: asset_effective_snapshots table is immutable.');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_prevent_effective_snapshots_delete
+BEFORE DELETE ON asset_effective_snapshots
+BEGIN
+    SELECT RAISE(ABORT, 'Deletion forbidden: asset_effective_snapshots table is immutable.');
+END;
 
 -- Registered Rules Specification Table
 CREATE TABLE IF NOT EXISTS rules (
@@ -110,16 +227,3 @@ CREATE TABLE IF NOT EXISTS users (
     display_name TEXT NOT NULL,
     role TEXT NOT NULL CHECK(role IN ('creator', 'reviewer', 'fact_owner'))
 );
-
--- Prevent Updates and Deletes on Append-Only Audit Table
-CREATE TRIGGER IF NOT EXISTS trg_prevent_review_events_update
-BEFORE UPDATE ON review_events
-BEGIN
-    SELECT RAISE(ABORT, 'Mutation forbidden: review_events table is append-only.');
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_prevent_review_events_delete
-BEFORE DELETE ON review_events
-BEGIN
-    SELECT RAISE(ABORT, 'Deletion forbidden: review_events table is append-only.');
-END;

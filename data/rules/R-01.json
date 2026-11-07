@@ -1,35 +1,83 @@
 {
   "rule_id": "R-01",
+  "name": "Mandatory DSHEA Statutory Disclaimer for Dietary Supplements",
+  "authoritative_source": "FD&C Act § 403(r)(6) [21 U.S.C. § 343(r)(6)]; 21 CFR § 101.93",
   "predicate_type": "required_text",
   "scope": {
     "product": "*",
+    "category": "dietary_supplement",
     "market": "US",
     "channel": "pdp"
   },
   "parameters": {
+    "product_category": "dietary_supplement",
+    "trigger_condition": "qualifying_structure_function_claim_present",
+    "qualifying_structure_function_terms": [
+      "supports",
+      "maintains",
+      "promotes",
+      "enhances",
+      "boosts",
+      "nourishes",
+      "cellular hydration",
+      "collagen synthesis",
+      "skin barrier function"
+    ],
     "required_phrases": [
       "These statements have not been evaluated by the Food and Drug Administration",
       "not intended to diagnose, treat, cure, or prevent any disease"
     ],
     "case_sensitive": false,
-    "explanation": "US PDP copy containing structure/function statements requires statutory FDA disclaimer (21 U.S.C. 343(r)(6))."
+    "exempt_categories": [
+      "topical_cosmetic",
+      "cosmetic"
+    ],
+    "explanation": "Under 21 U.S.C. § 343(r)(6) and 21 CFR § 101.93, dietary supplement PDP copy making qualifying structure/function claims must bear the statutory two-sentence FDA disclaimer. The disclaimer is not required for dietary supplements lacking structure/function claims, and ordinary topical cosmetics (FD&C Act § 201(i) / MoCRA) are strictly exempt."
   },
   "positive_test_cases": [
     {
-      "input": "Our acne cleanser helps maintain clear skin tone and protects lipid moisture barriers.",
+      "test_name": "dietary_supplement_with_structure_function_claim_missing_disclaimer",
+      "category": "dietary_supplement",
+      "market": "US",
+      "channel": "pdp",
+      "has_structure_function_claim": true,
+      "input": "Our daily skin clarity dietary supplement capsules support cellular hydration and healthy collagen synthesis from within.",
       "expected_match": true,
+      "expected_severity": "BLOCK",
       "missing_phrases": [
         "These statements have not been evaluated by the Food and Drug Administration",
         "not intended to diagnose, treat, cure, or prevent any disease"
-      ]
+      ],
+      "description": "Dietary supplement with a structure/function claim and missing disclaimer -> BLOCK."
     }
   ],
   "negative_test_cases": [
     {
-      "input": "Our acne cleanser helps maintain clear skin tone. These statements have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease.",
-      "expected_match": false
+      "test_name": "dietary_supplement_with_required_disclaimer",
+      "category": "dietary_supplement",
+      "market": "US",
+      "channel": "pdp",
+      "has_structure_function_claim": true,
+      "input": "Our daily skin clarity dietary supplement capsules support cellular hydration and healthy collagen synthesis from within. These statements have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease.",
+      "expected_match": false,
+      "expected_severity": null,
+      "description": "Dietary supplement with the required disclaimer -> no finding."
+    }
+  ],
+  "exclusion_test_cases": [
+    {
+      "test_name": "ordinary_topical_cosmetic_exclusion",
+      "category": "cosmetic",
+      "market": "US",
+      "channel": "pdp",
+      "product_type": "topical_wash",
+      "input": "Our gentle acne cleanser washes away surface impurities and refreshes blemish-prone skin.",
+      "expected_match": false,
+      "expected_r01_finding": false,
+      "reason": "Ordinary topical cosmetics are legally governed by FD&C Act § 201(i) / MoCRA and are strictly exempt from DSHEA disclaimers.",
+      "description": "Ordinary topical cosmetic -> no R-01 finding."
     }
   ],
   "owner_approved": true,
-  "version": 1
+  "version": 2
 }

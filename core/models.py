@@ -165,6 +165,7 @@ class Finding:
     suggested_rewrite: Optional[str] = None
     creator_action: CreatorActionState = CreatorActionState.PENDING
     dismiss_reason: Optional[str] = None
+    review_cycle: int = 1
 
 
 @dataclass
@@ -193,6 +194,42 @@ class ReviewEvent:
     comment: Optional[str] = None
     override_reason: Optional[str] = None
     timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    finding_id: Optional[str] = None
+    previous_action: Optional[str] = None
+    new_action: Optional[str] = None
+    event_fingerprint: Optional[str] = None
+    provenance: str = "USER_ACTION"
+    known_before_timestamp: Optional[str] = None
+
+    @property
+    def finding_provenance_label(self) -> str:
+        """Truthful fallback label when finding-level provenance is unavailable."""
+        if self.finding_id:
+            return f"Finding: {self.finding_id}"
+        return "Asset-level event"
+
+
+@dataclass
+class AssetSubmission:
+    """Topological submission parent record."""
+    submission_id: str
+    asset_id: str
+    submitted_by: str
+    review_cycle: int = 1
+    submitted_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+
+
+@dataclass
+class AssetEffectiveSnapshot:
+    """Immutable effective submission copy snapshot."""
+    snapshot_id: str
+    submission_id: str
+    asset_id: str
+    effective_text: str
+    content_hash: str
+    captured_by: str
+    review_cycle: int = 1
+    captured_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
 
 
 @dataclass
@@ -218,6 +255,7 @@ class Asset:
     text_content: str
     planned_publish_date: str
     created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    review_cycle: int = 1
 
 
 

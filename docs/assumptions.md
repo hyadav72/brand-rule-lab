@@ -27,3 +27,8 @@ This document records explicit assumptions made during the implementation of Bra
 ### Assumption 6: Role Authentication Scope
 - **Context:** MVP testing requires demonstrating Creator, Reviewer, and Fact Owner workflows without an external identity provider.
 - **Resolution:** System implements a clean role picker stored in `st.session_state["active_role"]`. Enforced permissions prevent unauthorized actions (e.g., Creator cannot approve; Reviewer cannot create fact versions; Fact Owner cannot approve assets) at both the UI and data layer.
+
+### Assumption 7: Candidate Fact Set Pagination & Unranked Retention
+- **Context:** Build Plan Section 8 requires ranking the complete eligible candidate fact set against each claim with zero silent truncation.
+- **Resolution:** Candidate facts are retrieved strictly by product and market scope from SQLite. If the eligible candidate set exceeds 20 facts, candidates are paginated in chunks of 20 to maintain LLM context headroom. Any candidate not explicitly scored by the model is preserved with score 0.0 at the end of the ranking list, ensuring 100% candidate retention with zero silent truncation.
+

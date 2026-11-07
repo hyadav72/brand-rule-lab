@@ -130,11 +130,16 @@ class MockLLM(LLMAdapter):
             return fact.permitted_wording
 
         text = finding.source_text
+
+        # Sentence-level tone rewrite for demo case / absolute acne elimination claims
+        if re.search(r"\bsay goodbye to acne\b", text, flags=re.IGNORECASE):
+            return "Gentle daily wash for clearer-looking skin!"
+
         # Terminology substitution
         text = re.sub(r"\bBPO\b", "Benzoyl Peroxide", text, flags=re.IGNORECASE)
         # Tone substitution
         text = re.sub(r"\bforever\b", "with regular daily use", text, flags=re.IGNORECASE)
-        text = re.sub(r"\bguaranteed\b", "clinically tested", text, flags=re.IGNORECASE)
+        text = re.sub(r"\bguaranteed\b", "trusted care", text, flags=re.IGNORECASE)
         text = re.sub(r"\binstant\b", "fast-acting", text, flags=re.IGNORECASE)
         text = re.sub(r"\bclears breakouts in 3 days\b", "reduces breakouts in 4 weeks with twice-daily use", text, flags=re.IGNORECASE)
 

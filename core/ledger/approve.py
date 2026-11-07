@@ -19,6 +19,7 @@ from typing import Optional, Tuple
 from core.audit import log_review_event
 from core.db import execute_commit, execute_query, get_connection
 from core.models import DriftStatus, Role
+from core.permissions import enforce_permission
 
 
 def normalize_claim_text(text: str) -> str:
@@ -65,16 +66,21 @@ def approve_claim(
     fact_id: str,
     fact_version_id: int,
     reviewer_id: str = "Sarah Jenkins (Reviewer)",
+    role: Optional[Role | str] = None,
     db_path: Optional[str] = None,
 ) -> str:
     """
     Formally approve claim and register into the immutable ledger.
+    Enforces that only Reviewer role can approve marketing assets.
+    Requires an explicit role; missing/None role is rejected.
     Returns minted stable_claim_id.
     """
+    enforce_permission(role, "approve_asset")
     normalized = normalize_claim_text(claim_text)
     text_hash = compute_approved_text_hash(normalized)
     stable_id = mint_stable_claim_id(asset_id, normalized, fact_version_id, db_path=db_path)
     now_ts = datetime.utcnow().isoformat()
+    reviewer_role = Role(role) if isinstance(role, str) else role
 
     with get_connection(db_path) as conn:
         conn.execute(
@@ -96,10 +102,68 @@ def approve_claim(
     log_review_event(
         asset_id=asset_id,
         actor=reviewer_id,
-        role=Role.REVIEWER,
+        role=reviewer_role,
         action="approve",
         comment=f"Minted {stable_id} linked to {fact_id} v{fact_version_id}",
         db_path=db_path,
     )
 
     return stable_id
+
+
+def request_changes(
+    asset_id: str,
+    comment: str,
+    actor: str = "Sarah Jenkins (Reviewer)",
+    role: Optional[Role | str] = None,
+    db_path: Optional[str] = None,
+) -> None:
+    """
+    Request revisions on an asset and return it to the Creator queue.
+    Enforces that only Reviewer role can request changes.
+    Requires an explicit role; missing/None role is rejected.
+    """
+    enforce_permission(role, "request_changes")
+    execute_commit(
+        "UPDATE assets SET status = 'changes_requested' WHERE asset_id = ?;",
+        (asset_id,),
+        db_path=db_path,
+    )
+    rev_role = Role(role) if isinstance(role, str) else role
+    log_review_event(
+        asset_id=asset_id,
+        actor=actor,
+        role=rev_role,
+        action="request_changes",
+        comment=comment,
+        db_path=db_path,
+    )
+
+
+def escalate_asset(
+    asset_id: str,
+    comment: str,
+    actor: str = "Sarah Jenkins (Reviewer)",
+    role: Optional[Role | str] = None,
+    db_path: Optional[str] = None,
+) -> None:
+    """
+    Escalate an asset with evidence gaps to the Fact Owner queue.
+    Enforces that only Reviewer role can escalate findings.
+    Requires an explicit role; missing/None role is rejected.
+    """
+    enforce_permission(role, "escalate_finding")
+    execute_commit(
+        "UPDATE assets SET status = 'escalated' WHERE asset_id = ?;",
+        (asset_id,),
+        db_path=db_path,
+    )
+    rev_role = Role(role) if isinstance(role, str) else role
+    log_review_event(
+        asset_id=asset_id,
+        actor=actor,
+        role=rev_role,
+        action="escalate",
+        comment=comment,
+        db_path=db_path,
+    )

@@ -10,25 +10,54 @@ from core.models import ExtractedDoc
 
 
 def ingest_pdf(file_bytes: bytes, filename: str) -> ExtractedDoc:
-    """Ingest PDF draft using PyMuPDF with per-page text and image extraction."""
-    doc = fitz.open(stream=file_bytes, filetype="pdf")
+    """
+    Ingest PDF draft using PyMuPDF with per-page text and image extraction.
+    Raises friendly error 'We could not read this PDF. Try DOCX or TXT' on parse or text extraction failures.
+    """
+    try:
+        doc = fitz.open(stream=file_bytes, filetype="pdf")
+    except Exception as e:
+        raise ValueError("We could not read this PDF. Try DOCX or TXT") from e
+
     pages_text: list[str] = []
     extracted_images: list[bytes] = []
 
-    for page_idx in range(len(doc)):
-        page = doc[page_idx]
-        text = page.get_text("text").strip()
-        pages_text.append(text)
+    try:
+        for page_idx in range(len(doc)):
+            page = doc[page_idx]
+            text = page.get_text("text").strip()
+            pages_text.append(text)
 
-        # Extract embedded raster images
-        for img_info in page.get_images(full=True):
-            xref = img_info[0]
-            base_image = doc.extract_image(xref)
-            image_bytes = base_image.get("image")
-            if image_bytes:
-                extracted_images.append(image_bytes)
+            # Extract embedded raster images
+            for img_info in page.get_images(full=True):
+                xref = img_info[0]
+                base_image = doc.extract_image(xref)
+                image_bytes = base_image.get("image")
+                if image_bytes:
+                    extracted_images.append(image_bytes)
+    except Exception as e:
+        raise ValueError("We could not read this PDF. Try DOCX or TXT") from e
 
     full_text = "\n\n".join(t for t in pages_text if t)
+
+    # If PyMuPDF extracted no text, check if embedded raster images exist and attempt OCR
+    if not full_text.strip():
+        if extracted_images:
+            from core.ingest.image_ocr import ingest_image
+            ocr_parts: list[str] = []
+            for img_bytes in extracted_images:
+                try:
+                    img_doc = ingest_image(img_bytes, filename)
+                    if img_doc.text and not img_doc.text.startswith("[Image Asset:"):
+                        ocr_parts.append(img_doc.text)
+                except Exception:
+                    pass
+            if ocr_parts:
+                full_text = "\n\n".join(ocr_parts)
+
+    if not full_text.strip():
+        raise ValueError("We could not read this PDF. Try DOCX or TXT")
+
     source_hash = hashlib.sha256(file_bytes).hexdigest()
 
     return ExtractedDoc(

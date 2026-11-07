@@ -135,8 +135,11 @@ def predicate_date_window(
         except Exception:
             pass
 
-    # Also compare planned publish date against offer expiration
-    if planned_publish_date_str:
+    # Also compare planned publish date against offer expiration if text has offer mentions or dates
+    has_offer_context = bool(
+        m1 or m2 or m3 or re.search(r"\b(?:sale|offer|promotion|deal|discount|save|ends?|until|through)\b", text, flags=re.IGNORECASE)
+    )
+    if planned_publish_date_str and has_offer_context:
         try:
             pub_date = datetime.strptime(planned_publish_date_str, "%Y-%m-%d").date()
             if pub_date > approved_expiry:
@@ -208,6 +211,13 @@ def predicate_logo_hash(
     Coverage Boundary:
     If product has no registered reference logo asset, predicate returns has_violation=False
     with an informational notice explaining that the coverage boundary has been met.
+
+    ARCHITECTURAL LIMITATION & SCOPE BOUNDARY:
+    dHash computes global difference gradients across the normalized (9x8) image.
+    This predicate strictly compares PRE-CROPPED candidate logo assets against pre-cropped
+    reference logos. It does NOT perform object localization, bounding-box detection, or
+    cropping from unsegmented full ad creatives. Passing an entire uncropped creative banner
+    will compare the entire scene rather than the isolated logo glyph.
     """
     if candidate_image is None or (isinstance(candidate_image, bytes) and len(candidate_image) == 0):
         return False, None, "No candidate image provided for logo verification."

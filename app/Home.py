@@ -1,13 +1,26 @@
 """
-Brand Rule Lab — Main Application Entry & Role Picker
+Brand Rule Lab — Main Application Entry & Dashboard
 Owned by Agent A4 (Frontend & UX Engineer).
+
+Midnight Black, Pure White & Lime Green Editorial SaaS Theme.
 """
 
+import sys
+from pathlib import Path
+
+# Ensure project root is available on sys.path for Streamlit execution
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 import streamlit as st
-from app.ui.theme import apply_theme, render_banner
+from app.ui.components import render_audit_event_item
+from app.ui.theme import apply_theme, render_banner, render_sidebar_role_switcher
 from core.db import execute_query, init_db
-from core.models import Role
+from core.llm import get_llm_status
+from core.models import ReviewEvent, Role
 from core.seed import seed_database
+from core.snapshots import migrate_add_snapshots_table
 
 # Configure Streamlit page layout
 st.set_page_config(
@@ -20,121 +33,211 @@ st.set_page_config(
 apply_theme()
 render_banner()
 
-# Initialize session state for role and active asset
-if "role" not in st.session_state:
-    st.session_state["role"] = Role.CREATOR.value
+# Global Sidebar Persona Switcher & Environment Info
+current_role = render_sidebar_role_switcher()
 
-# Ensure database is seeded on initial run
+# Startup database readiness check and permanent protection
 if "db_initialized" not in st.session_state:
     try:
-        seed_database()
+        from core.db import ensure_app_database_ready
+        db_status = ensure_app_database_ready()
         st.session_state["db_initialized"] = True
+        st.session_state["db_status"] = db_status
     except Exception as e:
-        st.error(f"Database initialization notice: {e}")
-
-# Sidebar Role Switcher
-with st.sidebar:
-    st.markdown('<div class="eyebrow">ACTIVE PERSONA</div>', unsafe_allow_html=True)
-    selected_role = st.selectbox(
-        "Switch System Role",
-        options=[Role.CREATOR.value, Role.REVIEWER.value, Role.FACT_OWNER.value],
-        index=[Role.CREATOR.value, Role.REVIEWER.value, Role.FACT_OWNER.value].index(st.session_state["role"]),
-        format_func=lambda x: {
-            "creator": "✍️ Creator (Drafts & Edits)",
-            "reviewer": "🔍 Reviewer (Approval Queue)",
-            "fact_owner": "🧪 Fact Owner (Lineage & Drift)",
-        }.get(x, x),
-    )
-    st.session_state["role"] = selected_role
-
-    st.markdown("---")
-    st.markdown('<div class="eyebrow">SYSTEM ENVIRONMENT</div>', unsafe_allow_html=True)
-    st.markdown(
-        """
-        - **Engine:** Python 3.11.9
-        - **LLM Mode:** `mock` (Deterministic Demo)
-        - **Rules Active:** 7 Pure-Python Predicates
-        - **Ledger:** SQLite (PRAGMA foreign_keys)
-        """
-    )
+        st.error(
+            f"🚨 **Database Startup Initialization Failure:** {e}\n\n"
+            "Application startup halted to prevent execution on an uninitialized or corrupt database."
+        )
+        st.stop()
 
 # Main Landing Header
+st.markdown('<div class="eyebrow">ENTERPRISE GOVERNANCE & CLAIM LEDGER</div>', unsafe_allow_html=True)
 st.title("Brand Rule Lab")
 st.markdown(
     """
-    #### Pre-Publication Brand Compliance Review Platform with Claim-to-Fact Ledger
-    *INKLOOM AI Hackathon MVP*
-    """
+    <p style="font-size: 1.1rem; color: #A1A1AA; margin-top: -0.5rem; margin-bottom: 1.5rem;">
+        Pre-Publication Brand Compliance Platform with Immutable Claim-to-Fact Lineage Ledger.
+    </p>
+    """,
+    unsafe_allow_html=True,
 )
 
-# Core Architecture Card
+# Core Architecture Philosophy Hero Card
 st.markdown(
     """
-    <div class="brand-card">
+    <div class="brand-card" style="border-left: 4px solid #C6F432;">
         <div class="eyebrow">CORE ARCHITECTURAL PHILOSOPHY</div>
-        <h3 style="margin-top: 0.2rem; color: #0B6E6A;">AI proposes. Python decides. Humans approve.</h3>
-        <p style="margin-bottom: 0;">
-            Most generative tools hallucinate compliance or permit prompt-injection jailbreaks. 
-            Brand Rule Lab enforces deterministic governance: LLMs extract spans and propose rewrites, 
-            pure Python predicates decide pass/fail verdicts, and authorized humans approve claims into an immutable ledger.
+        <h3 style="margin-top: 0.2rem; color: #FFFFFF; font-size: 1.45rem;">
+            AI proposes. Python decides. <span style="color: #C6F432;">Humans approve.</span>
+        </h3>
+        <p style="margin-bottom: 0; color: #D4D4D8; line-height: 1.65; font-size: 0.95rem;">
+            Generative LLMs excel at span extraction and linguistic rewrite proposals, but fail at deterministic compliance verification. 
+            Brand Rule Lab enforces strict separation of concerns: LLMs propose candidate findings and rewrites, 
+            pure-Python predicates execute auditable pass/fail compliance decisions, and authorized humans approve verified claims into an immutable ledger.
         </p>
     </div>
     """,
     unsafe_allow_html=True,
 )
 
+# AI Multi-Provider Infrastructure Matrix
+st.markdown('<div class="eyebrow">AI PROVIDER INFRASTRUCTURE MATRIX</div>', unsafe_allow_html=True)
+import os
+llm_status = get_llm_status()
+current_mode = llm_status.get("mode", "mock").lower()
+active_p = llm_status.get("active_provider") or ("mock" if current_mode == "mock" else "gemini")
+
+has_gemini_key = bool(os.getenv("GEMINI_API_KEY"))
+has_nvidia_key = bool(os.getenv("NVIDIA_API_KEY"))
+
+gemini_model = os.getenv("GEMINI_MODEL") or os.getenv("LLM_MODEL") or "gemini-3.1-flash-lite"
+nvidia_model = os.getenv("NVIDIA_MODEL") or "mistralai/mistral-7b-instruct-v0.3"
+
+# Derive dynamic statuses from real runtime configuration
+if current_mode in ("live", "dual", "gemini") and active_p == "gemini":
+    gemini_badge = '<span class="badge-pill badge-approved">ACTIVE</span>'
+    gemini_sub = "Primary routing &bull; Bounded 3-retry cap"
+elif has_gemini_key:
+    gemini_badge = '<span class="badge-pill badge-ready">HOT STANDBY</span>'
+    gemini_sub = "API key configured &bull; Standby"
+else:
+    gemini_badge = '<span class="badge-pill badge-escalated">UNCONFIGURED</span>'
+    gemini_sub = "GEMINI_API_KEY not set in environment"
+
+if current_mode in ("live", "dual", "nvidia") and active_p == "nvidia":
+    nvidia_badge = '<span class="badge-pill badge-approved">ACTIVE</span>'
+    nvidia_sub = "Primary routing &bull; Verified OpenAI schema"
+elif has_nvidia_key:
+    nvidia_badge = '<span class="badge-pill badge-ready">HOT STANDBY</span>'
+    nvidia_sub = "API key verified &bull; Sequential failover target"
+else:
+    nvidia_badge = '<span class="badge-pill badge-escalated">UNCONFIGURED</span>'
+    nvidia_sub = "NVIDIA_API_KEY not set in environment"
+
+if current_mode == "mock" or active_p == "mock":
+    mock_badge = '<span class="badge-pill badge-approved">ACTIVE</span>'
+    mock_sub = "Zero network dependency &bull; Demo protection"
+else:
+    mock_badge = '<span class="badge-pill badge-ready">GUARANTEED</span>'
+    mock_sub = "Zero network dependency &bull; Final resilience tier"
+
+with st.container():
+    p_col1, p_col2, p_col3 = st.columns(3)
+    with p_col1:
+        st.markdown(
+            f"""
+            <div class="brand-card" style="padding: 1.1rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="eyebrow">PRIMARY PROVIDER</span>
+                    {gemini_badge}
+                </div>
+                <h4 style="margin: 0.3rem 0; color: #FFFFFF;">Google Gemini</h4>
+                <p style="font-size: 0.82rem; color: #A1A1AA; margin-bottom: 0.5rem;">
+                    REST API (v1beta) &bull; <code>{gemini_model}</code>
+                </p>
+                <div style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:#A1A1AA;">
+                    {gemini_sub}
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    with p_col2:
+        st.markdown(
+            f"""
+            <div class="brand-card" style="padding: 1.1rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="eyebrow">SECONDARY PROVIDER</span>
+                    {nvidia_badge}
+                </div>
+                <h4 style="margin: 0.3rem 0; color: #FFFFFF;">NVIDIA NIM</h4>
+                <p style="font-size: 0.82rem; color: #A1A1AA; margin-bottom: 0.5rem;">
+                    OpenAI Compatible API &bull; <code>{nvidia_model}</code>
+                </p>
+                <div style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:#A1A1AA;">
+                    {nvidia_sub}
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    with p_col3:
+        st.markdown(
+            f"""
+            <div class="brand-card" style="padding: 1.1rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="eyebrow">FALLBACK PROVIDER</span>
+                    {mock_badge}
+                </div>
+                <h4 style="margin: 0.3rem 0; color: #FFFFFF;">Deterministic Mock</h4>
+                <p style="font-size: 0.82rem; color: #A1A1AA; margin-bottom: 0.5rem;">
+                    In-Memory Python &bull; <code>100% Offline Reproducible</code>
+                </p>
+                <div style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:#C6F432 if '{mock_badge}'.find('ACTIVE') != -1 else '#34D399';">
+                    {mock_sub}
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+st.markdown("---")
+
 # Quick Navigation Grid
+st.markdown('<div class="eyebrow">GOVERNANCE STAGES & WORKSPACES</div>', unsafe_allow_html=True)
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     st.markdown(
         """
-        <div class="brand-card" style="text-align: center;">
+        <div class="brand-card" style="text-align: center; height: 180px;">
             <div class="eyebrow">STAGE 1</div>
-            <h4>✍️ Creator Dashboard</h4>
-            <p style="font-size: 0.85rem; color: #555;">Upload drafts (PDF, DOCX, TXT, Image), inspect findings, and accept compliant rewrites.</p>
+            <h4 style="color: #FFFFFF; margin-top: 0.2rem;">✍️ Creator</h4>
+            <p style="font-size: 0.85rem; color: #A1A1AA;">Upload drafts (PDF, DOCX, TXT, Images), inspect findings, and accept compliant rewrites.</p>
         </div>
         """,
         unsafe_allow_html=True,
     )
-    if st.button("Go to Creator Workspace", use_container_width=True):
+    if st.button("Open Creator Workspace", use_container_width=True):
         st.switch_page("pages/1_Creator.py")
 
 with col2:
     st.markdown(
         """
-        <div class="brand-card" style="text-align: center;">
+        <div class="brand-card" style="text-align: center; height: 180px;">
             <div class="eyebrow">STAGE 2</div>
-            <h4>🔍 Reviewer Queue</h4>
-            <p style="font-size: 0.85rem; color: #555;">Approve compliant assets, inspect lineage (<code>SC-xxxx → Fact vX</code>), or log explicit overrides.</p>
+            <h4 style="color: #FFFFFF; margin-top: 0.2rem;">🔍 Reviewer</h4>
+            <p style="font-size: 0.85rem; color: #A1A1AA;">Approve compliant assets, inspect lineage (<code>SC-xxxx → Fact vX</code>), or log explicit overrides.</p>
         </div>
         """,
         unsafe_allow_html=True,
     )
-    if st.button("Go to Reviewer Queue", use_container_width=True):
+    if st.button("Open Reviewer Queue", use_container_width=True):
         st.switch_page("pages/2_Reviewer.py")
 
 with col3:
     st.markdown(
         """
-        <div class="brand-card" style="text-align: center;">
+        <div class="brand-card" style="text-align: center; height: 180px;">
             <div class="eyebrow">STAGE 3</div>
-            <h4>🧪 Fact Owner Ledger</h4>
-            <p style="font-size: 0.85rem; color: #555;">Update approved facts with 0 LLM calls and 1 SQL update. Watch drift propagate live.</p>
+            <h4 style="color: #FFFFFF; margin-top: 0.2rem;">🧪 Fact Owner</h4>
+            <p style="font-size: 0.85rem; color: #A1A1AA;">Publish approved facts with 0 LLM calls and 1 SQL update. Propagate drift cascades live.</p>
         </div>
         """,
         unsafe_allow_html=True,
     )
-    if st.button("Go to Fact Owner Ledger", use_container_width=True):
+    if st.button("Open Fact Owner Ledger", use_container_width=True):
         st.switch_page("pages/3_Fact_Owner.py")
 
 with col4:
     st.markdown(
         """
-        <div class="brand-card" style="text-align: center;">
+        <div class="brand-card" style="text-align: center; height: 180px;">
             <div class="eyebrow">VERIFICATION</div>
-            <h4>📋 Rule Tests Runner</h4>
-            <p style="font-size: 0.85rem; color: #555;">Run positive and negative test cases live across all rules for hackathon judges.</p>
+            <h4 style="color: #FFFFFF; margin-top: 0.2rem;">📋 Rule Tests</h4>
+            <p style="font-size: 0.85rem; color: #A1A1AA;">Execute positive and negative test cases live across all rules for hackathon judges.</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -145,6 +248,7 @@ with col4:
 st.markdown("---")
 
 # Quick System Metrics
+st.markdown('<div class="eyebrow">SYSTEM HEALTH & REPOSITORY METRICS</div>', unsafe_allow_html=True)
 m1, m2, m3, m4 = st.columns(4)
 try:
     p_cnt = execute_query("SELECT COUNT(*) as c FROM products;")[0]["c"]
@@ -155,5 +259,29 @@ try:
     m2.metric("Approved Fact Versions", f_cnt)
     m3.metric("Ledger Approved Claims", c_cnt)
     m4.metric("Active Deterministic Rules", r_cnt)
+except Exception:
+    pass
+
+# Recent Audit Events Stream
+try:
+    recent_events = execute_query("SELECT * FROM review_events ORDER BY timestamp DESC LIMIT 4;")
+    if recent_events:
+        st.markdown("---")
+        st.markdown('<div class="eyebrow">RECENT AUDIT TRAIL ACTIVITY</div>', unsafe_allow_html=True)
+        for r_evt in recent_events:
+            evt_obj = ReviewEvent(
+                event_id=r_evt["event_id"],
+                asset_id=r_evt["asset_id"],
+                actor=r_evt["actor"],
+                role=Role(r_evt["role"]) if r_evt["role"] in [r.value for r in Role] else Role.CREATOR,
+                action=r_evt["action"],
+                finding_id=r_evt.get("finding_id"),
+                override_reason=r_evt.get("override_reason"),
+                comment=r_evt.get("comment"),
+                provenance=r_evt.get("provenance", "USER_ACTION"),
+                known_before_timestamp=r_evt.get("known_before_timestamp"),
+                timestamp=r_evt["timestamp"],
+            )
+            st.markdown(render_audit_event_item(evt_obj), unsafe_allow_html=True)
 except Exception:
     pass

@@ -11,20 +11,35 @@ ENV/
 
 # Environment variables & secrets
 .env
-.env.local
+.env.*
+!.env.example
+*.key
+*.pem
+*.token
 
-# SQLite database files (keep repo clean, seeds populate DB)
+# SQLite database files, locks, & backups (keep repo clean, seeds populate DB)
 *.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
 *.sqlite3
+*.bak
+*.gate
+data/*.db
+data/.*.gate
+data/backups/
+data/forensics/
 
 # Streamlit runtime
 .streamlit/secrets.toml
 
-# Testing & Coverage
+# Testing & Coverage & Scratch
 .pytest_cache/
 .coverage
 htmlcov/
 scratch/
+*.log
 
 # Operating System files
 .DS_Store
